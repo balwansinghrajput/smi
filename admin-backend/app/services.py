@@ -4,7 +4,7 @@ import re
 from fastapi import UploadFile
 import httpx
 
-from app.config import settings
+from app.core.config import settings
 
 
 class CloudinaryService:

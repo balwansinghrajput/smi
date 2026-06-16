@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.config import settings
+from app.core.config import settings
 from app.core.database import db_manager, get_database
 from motor.motor_asyncio import AsyncIOMotorDatabase
 

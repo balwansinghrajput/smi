@@ -1,23 +1,30 @@
 from datetime import datetime, timedelta
+import hashlib
 import re
 from typing import Any, Dict
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from app.core.config import settings
 from app.utils.errors import AuthenticationError, ValidationError
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 PASSWORD_PATTERN = re.compile(
     r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$"
 )
 
 
+def _prepare_password(password: str) -> bytes:
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        return hashlib.sha256(password_bytes).digest()
+    return password_bytes
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    password_bytes = _prepare_password(plain_password)
+    return bcrypt.checkpw(password_bytes, hashed_password.encode("utf-8"))
 
 
 def get_password_hash(password: str) -> str:
@@ -25,7 +32,9 @@ def get_password_hash(password: str) -> str:
         raise ValidationError(
             "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
         )
-    return pwd_context.hash(password)
+    password_bytes = _prepare_password(password)
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt(rounds=12))
+    return hashed.decode("utf-8")
 
 
 class TokenPayload(BaseModel):

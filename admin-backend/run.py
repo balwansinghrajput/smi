@@ -12,9 +12,9 @@ if __name__ == "__main__":
         "app.main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=is_dev,                                 # Reload only in development
-        workers=1 if is_dev or is_windows else 4,      # Windows should use a single worker
+        reload=is_dev and not is_windows,               # Avoid reload subprocess issues on Windows
+        workers=1,                                      # Single worker for stability on Windows and development
         log_level="info",
-        proxy_headers=True,                            # Crucial if running behind Nginx/Traefik/Cloudflare
+        proxy_headers=True,                             # Crucial if running behind Nginx/Traefik/Cloudflare
         forwarded_allow_ips="*",
     )
