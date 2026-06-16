@@ -58,6 +58,20 @@ async def get_products(page: int = 1, db: AsyncIOMotorDatabase = Depends(get_dat
         return _format_error(str(exc), 400)
 
 
+@router.get("/{product_id}", response_model=BaseResponse)
+async def get_product(product_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    try:
+        service = ProductService(db)
+        product = await service.get_product(product_id)
+        return BaseResponse(status="success", message="Product retrieved.", data=product.dict(by_alias=True))
+    except ValueError as exc:
+        return _format_error(str(exc), 400)
+    except LookupError as exc:
+        return _format_error(str(exc), 404)
+    except Exception as exc:
+        return _format_error(str(exc), 500)
+
+
 @router.put("/{product_id}", response_model=BaseResponse, dependencies=[Depends(require_roles("super_admin", "admin"))])
 async def update_product(
     product_id: str,
