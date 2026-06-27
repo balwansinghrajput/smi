@@ -23,12 +23,12 @@ export const productApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Product', id: 'SEARCH' }],
     }),
     getProductById: builder.query({
-      query: (id) => `/api/products/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Product', id }],
+      query: (productId) => ({ url: `/api/products/${productId}` }),
+      providesTags: (result, error, productId) => [{ type: 'Product', id: productId }],
     }),
     getRelatedProducts: builder.query({
-      query: (id) => `/api/products/${id}/related`,
-      providesTags: (result, error, id) => [{ type: 'Product', id: `${id}-RELATED` }],
+      query: (productId) => ({ url: `/api/products/${productId}/related` }),
+      providesTags: (result, error, productId) => [{ type: 'Product', id: `${productId}-RELATED` }],
     }),
   }),
 })

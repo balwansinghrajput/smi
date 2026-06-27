@@ -3,7 +3,10 @@ import { apiClient } from './http'
 
 const axiosBaseQuery =
   () =>
-  async ({ url, method = 'GET', data, params }) => {
+  async (args) => {
+    const { url, method = 'GET', data, params } =
+      typeof args === 'string' ? { url: args } : args || {}
+
     try {
       const result = await apiClient({ url, method, data, params })
       return { data: result.data }

@@ -32,12 +32,22 @@ function StarRating({ rating, size = 'h-5 w-5' }) {
 
 export default function ProductDetails() {
   const { id } = useParams()
+  const productId = id?.trim()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { addToCart } = useCartActions()
-  const { data: product, isLoading, isError } = useGetProductByIdQuery(id)
-  const { data: relatedProducts = [] } = useGetRelatedProductsQuery(id)
-  const { data: reviewsData } = useGetProductReviewsQuery(id)
+  const { data: product, isLoading, isError } = useGetProductByIdQuery(productId, {
+    skip: !productId,
+    refetchOnMountOrArgChange: true,
+  })
+  const { data: relatedProducts = [] } = useGetRelatedProductsQuery(productId, {
+    skip: !productId,
+    refetchOnMountOrArgChange: true,
+  })
+  const { data: reviewsData } = useGetProductReviewsQuery(productId, {
+    skip: !productId,
+    refetchOnMountOrArgChange: true,
+  })
   const [addReview, { isLoading: submittingReview }] = useAddReviewMutation()
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
   const reviews = reviewsData?.reviews || []
@@ -48,7 +58,7 @@ export default function ProductDetails() {
     comment: '',
   })
 
-  const similarProducts = useMemo(() => relatedProducts.slice(0, 4), [relatedProducts])
+  const similarProducts = useMemo(() => (relatedProducts || []).slice(0, 4), [relatedProducts])
 
   const handleAddToCart = () => {
     addToCart(product.id, quantity)

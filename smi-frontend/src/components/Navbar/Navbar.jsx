@@ -9,8 +9,6 @@ import { COMPANY } from '@/constants'
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/products', label: 'Products' },
-  { to: '/#why-us', label: 'Why Us' },
-  { to: '/#contact', label: 'Contact' },
 ]
 
 export default function Navbar() {
