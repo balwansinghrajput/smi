@@ -4,23 +4,39 @@ export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query({
       query: (params) => ({
-        url: '/products',
+        url: '/api/products',
         params,
       }),
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Product', id })),
+              ...result.products.map(({ id }) => ({ type: 'Product', id })),
               { type: 'Product', id: 'LIST' },
             ]
           : [{ type: 'Product', id: 'LIST' }],
     }),
+    searchProducts: builder.query({
+      query: (params) => ({
+        url: '/api/products/search',
+        params,
+      }),
+      providesTags: [{ type: 'Product', id: 'SEARCH' }],
+    }),
     getProductById: builder.query({
-      query: (id) => `/products/${id}`,
+      query: (id) => `/api/products/${id}`,
       providesTags: (result, error, id) => [{ type: 'Product', id }],
+    }),
+    getRelatedProducts: builder.query({
+      query: (id) => `/api/products/${id}/related`,
+      providesTags: (result, error, id) => [{ type: 'Product', id: `${id}-RELATED` }],
     }),
   }),
 })
 
-export const { useGetProductsQuery, useGetProductByIdQuery, useLazyGetProductsQuery } =
-  productApi
+export const {
+  useGetProductsQuery,
+  useSearchProductsQuery,
+  useGetProductByIdQuery,
+  useGetRelatedProductsQuery,
+  useLazyGetProductsQuery,
+} = productApi

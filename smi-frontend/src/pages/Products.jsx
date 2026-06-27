@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '@/components/ProductCard/ProductCard'
 import { ProductGridSkeleton } from '@/components/SkeletonLoader/SkeletonLoader'
-import { useGetProductsQuery } from '@/features/products/productApi'
+import { useGetProductsQuery, useSearchProductsQuery } from '@/features/products/productApi'
 import { useGetCategoriesQuery } from '@/features/categories/categoryApi'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import {
@@ -11,16 +11,35 @@ import {
   setProductPage,
 } from '@/features/products/productSlice'
 import { useCartActions } from '@/hooks/useCartActions'
-import { filterProducts, paginate, sortProducts } from '@/utils'
-import { PRODUCTS_PER_PAGE, SORT_OPTIONS } from '@/constants'
+import { filterProducts, sortProducts } from '@/utils'
+import { SORT_OPTIONS } from '@/constants'
 
 export default function Products() {
   const dispatch = useAppDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const filters = useAppSelector(selectProductFilters)
-  const { data: products = [], isLoading, isFetching } = useGetProductsQuery()
+  const { data: productsPage, isLoading, isFetching } = useGetProductsQuery(
+    {
+      page: filters.page,
+      category: filters.category || undefined,
+    },
+    { skip: !!filters.search }
+  )
+  const {
+    data: searchPage,
+    isLoading: searchLoading,
+    isFetching: searchFetching,
+  } = useSearchProductsQuery(
+    {
+      page: filters.page,
+      q: filters.search || undefined,
+    },
+    { skip: !filters.search }
+  )
   const { data: categories = [] } = useGetCategoriesQuery()
   const { addToCart } = useCartActions()
+  const pageData = filters.search ? searchPage : productsPage
+  const products = pageData?.products || []
 
   useEffect(() => {
     const category = searchParams.get('category') || ''
@@ -29,14 +48,13 @@ export default function Products() {
   }, [searchParams, dispatch])
 
   const filteredProducts = useMemo(() => {
-    const filtered = filterProducts(products, filters)
+    const filtered = filterProducts(products, { ...filters, search: '', category: '' })
     return sortProducts(filtered, filters.sortBy)
   }, [products, filters])
 
-  const { items, totalPages, totalItems } = useMemo(
-    () => paginate(filteredProducts, filters.page, PRODUCTS_PER_PAGE),
-    [filteredProducts, filters.page]
-  )
+  const items = filteredProducts
+  const totalPages = pageData?.totalPages || 1
+  const totalItems = pageData?.totalProducts || filteredProducts.length
 
   const updateFilter = (key, value) => {
     dispatch(setProductFilters({ [key]: value }))
@@ -64,7 +82,7 @@ export default function Products() {
           <h1 className="text-3xl font-bold text-text md:text-4xl">All Products</h1>
           <p className="mt-2 text-muted">
             {totalItems} products found
-            {isFetching && !isLoading && ' · Updating...'}
+            {(isFetching || searchFetching) && !(isLoading || searchLoading) && ' - Updating...'}
           </p>
         </div>
 
@@ -158,7 +176,7 @@ export default function Products() {
           </aside>
 
           <div className="lg:col-span-3">
-            {isLoading ? (
+            {isLoading || searchLoading ? (
               <ProductGridSkeleton />
             ) : items.length === 0 ? (
               <div className="card py-16 text-center">

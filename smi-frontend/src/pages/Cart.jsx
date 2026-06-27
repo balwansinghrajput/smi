@@ -1,11 +1,16 @@
 import { Link } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@/hooks/redux'
+import { useAppSelector } from '@/hooks/redux'
 import {
   selectCartItemsWithDetails,
   selectCartSubtotal,
-  updateQuantity,
-  removeFromCart,
 } from '@/features/cart/cartSlice'
+import {
+  useDecreaseCartItemMutation,
+  useGetCartQuery,
+  useIncreaseCartItemMutation,
+  useRemoveFromCartMutation,
+} from '@/features/cart/cartApi'
+import { selectIsAuthenticated } from '@/features/auth/authSlice'
 import { formatCurrency } from '@/utils'
 import {
   TAX_RATE,
@@ -14,7 +19,11 @@ import {
 } from '@/constants'
 
 export default function Cart() {
-  const dispatch = useAppDispatch()
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  useGetCartQuery(undefined, { skip: !isAuthenticated })
+  const [increaseCartItem] = useIncreaseCartItemMutation()
+  const [decreaseCartItem] = useDecreaseCartItemMutation()
+  const [removeFromCart] = useRemoveFromCartMutation()
   const items = useAppSelector(selectCartItemsWithDetails)
   const subtotal = useAppSelector(selectCartSubtotal)
 
@@ -73,14 +82,7 @@ export default function Cart() {
                   <div className="flex items-center rounded-lg border border-border">
                     <button
                       type="button"
-                      onClick={() =>
-                        dispatch(
-                          updateQuantity({
-                            id: item.id,
-                            quantity: item.quantity - 1,
-                          })
-                        )
-                      }
+                      onClick={() => decreaseCartItem(item.productId)}
                       disabled={item.quantity <= 1}
                       className="px-3 py-2 text-muted hover:text-accent disabled:opacity-40"
                       aria-label="Decrease quantity"
@@ -92,14 +94,7 @@ export default function Cart() {
                     </span>
                     <button
                       type="button"
-                      onClick={() =>
-                        dispatch(
-                          updateQuantity({
-                            id: item.id,
-                            quantity: item.quantity + 1,
-                          })
-                        )
-                      }
+                      onClick={() => increaseCartItem(item.productId)}
                       className="px-3 py-2 text-muted hover:text-accent"
                       aria-label="Increase quantity"
                     >
@@ -113,7 +108,7 @@ export default function Cart() {
 
                   <button
                     type="button"
-                    onClick={() => dispatch(removeFromCart(item.id))}
+                    onClick={() => removeFromCart(item.productId)}
                     className="text-muted transition-colors hover:text-error"
                     aria-label={`Remove ${item.product.name} from cart`}
                   >
@@ -157,9 +152,9 @@ export default function Cart() {
               </div>
             </div>
 
-            <button type="button" className="btn-primary w-full">
+            <Link to="/checkout" className="btn-primary w-full">
               Proceed to Checkout
-            </button>
+            </Link>
             <Link to="/products" className="btn-secondary block w-full text-center">
               Continue Shopping
             </Link>

@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useAppDispatch } from './redux'
-import { addToCartLocal } from '@/features/cart/cartSlice'
 import { showToast } from '@/features/ui/uiSlice'
 import { useAddToCartMutation } from '@/features/cart/cartApi'
 import { useAppSelector } from './redux'
@@ -13,17 +12,16 @@ export const useCartActions = () => {
 
   const addToCart = useCallback(
     async (productId, quantity = 1) => {
-      dispatch(addToCartLocal({ productId, quantity }))
-      dispatch(
-        showToast({ type: 'success', message: 'Product added to cart' })
-      )
+      if (!isAuthenticated) {
+        dispatch(showToast({ type: 'error', message: 'Please sign in to add products to cart' }))
+        return
+      }
 
-      if (isAuthenticated) {
-        try {
-          await addToCartApi({ productId, quantity }).unwrap()
-        } catch {
-          // Local cart still works for guests
-        }
+      try {
+        await addToCartApi({ productId, quantity }).unwrap()
+        dispatch(showToast({ type: 'success', message: 'Product added to cart' }))
+      } catch (err) {
+        dispatch(showToast({ type: 'error', message: err.data?.message || 'Unable to add product' }))
       }
     },
     [dispatch, isAuthenticated, addToCartApi]

@@ -74,6 +74,6 @@ export const SORT_OPTIONS = [
 export const TAX_RATE = 0.18
 export const SHIPPING_FLAT = 99
 export const FREE_SHIPPING_THRESHOLD = 2000
-export const PRODUCTS_PER_PAGE = 8
+export const PRODUCTS_PER_PAGE = 4
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'

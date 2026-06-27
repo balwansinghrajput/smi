@@ -39,7 +39,7 @@ const productSlice = createSlice({
     builder.addMatcher(
       productApi.endpoints.getProducts.matchFulfilled,
       (state, action) => {
-        productsAdapter.setAll(state, action.payload)
+        productsAdapter.setAll(state, action.payload.products)
       }
     )
     builder.addMatcher(

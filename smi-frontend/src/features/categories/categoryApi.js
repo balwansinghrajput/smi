@@ -3,7 +3,7 @@ import { baseApi } from '@/api/baseApi'
 export const categoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query({
-      query: () => '/categories',
+      query: () => '/api/categories',
       providesTags: [{ type: 'Category', id: 'LIST' }],
     }),
   }),

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { getStorageItem } from '@/utils'
+import { getStorageItem, setStorageItem } from '@/utils'
 import { authApi } from './authApi'
 
 const AUTH_KEY = 'smi_auth'
@@ -27,11 +27,13 @@ const authSlice = createSlice({
         state.user = action.payload.user
         state.token = action.payload.token
         state.isAuthenticated = true
+        setStorageItem(AUTH_KEY, action.payload)
       })
       .addMatcher(authApi.endpoints.register.matchFulfilled, (state, action) => {
         state.user = action.payload.user
         state.token = action.payload.token
         state.isAuthenticated = true
+        setStorageItem(AUTH_KEY, action.payload)
       })
   },
 })

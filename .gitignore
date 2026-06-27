@@ -3,3 +3,4 @@ admin-backend/.env
 admin-backend/__pycahche__/
 __pycache__/
 *.pyc
+.env

@@ -1,9 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { cartApi } from './cartApi'
-import { products } from '@/constants/mockData'
-
-const getProductDetails = (productId) =>
-  products.find((p) => p.id === productId)
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -52,13 +48,25 @@ const cartSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addMatcher(cartApi.endpoints.getCart.matchFulfilled, (state, action) => {
-        state.items = action.payload
+        state.items = action.payload.items
       })
       .addMatcher(cartApi.endpoints.addToCart.matchFulfilled, (state, action) => {
-        state.items = action.payload
+        state.items = action.payload.items
+      })
+      .addMatcher(cartApi.endpoints.updateCartItem.matchFulfilled, (state, action) => {
+        state.items = action.payload.items
+      })
+      .addMatcher(cartApi.endpoints.increaseCartItem.matchFulfilled, (state, action) => {
+        state.items = action.payload.items
+      })
+      .addMatcher(cartApi.endpoints.decreaseCartItem.matchFulfilled, (state, action) => {
+        state.items = action.payload.items
       })
       .addMatcher(cartApi.endpoints.removeFromCart.matchFulfilled, (state, action) => {
-        state.items = action.payload
+        state.items = action.payload.items
+      })
+      .addMatcher(cartApi.endpoints.clearCartRemote.matchFulfilled, (state, action) => {
+        state.items = action.payload.items
       })
   },
 })
@@ -79,12 +87,12 @@ export const selectCartIsOpen = (state) => state.cart.isOpen
 export const selectCartItemsWithDetails = (state) => {
   return state.cart.items
     .map((item) => {
-      const product = getProductDetails(item.productId)
+      const product = item.product
       if (!product) return null
       return {
         ...item,
         product,
-        lineTotal: product.price * item.quantity,
+        lineTotal: item.lineTotal ?? product.price * item.quantity,
       }
     })
     .filter(Boolean)

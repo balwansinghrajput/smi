@@ -11,10 +11,11 @@ import { useCartActions } from '@/hooks/useCartActions'
 
 export default function Home() {
   const { data: categories = [], isLoading: categoriesLoading } = useGetCategoriesQuery()
-  const { data: featuredProducts = [], isLoading: productsLoading } = useGetProductsQuery({
+  const { data: featuredPage, isLoading: productsLoading } = useGetProductsQuery({
     featured: true,
   })
   const { addToCart } = useCartActions()
+  const featuredProducts = featuredPage?.products || []
 
   return (
     <>
