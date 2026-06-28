@@ -30,6 +30,7 @@ async def create_product(
     db: AsyncIOMotorDatabase = Depends(get_database),
     current_admin=Depends(get_current_admin),
 ):
+    print("------------------ product create request -----------------")
     try:
         payload = ProductCreateRequest(
             product_title=product_title,
@@ -42,9 +43,12 @@ async def create_product(
             tags=[tag.strip() for tag in tags.split(",") if tag.strip()],
         )
         service = ProductService(db)
+        print("------------------ product service created -----------------" , service)
         product = await service.create_product(payload, product_image)
+        print("------------------ product created successfully -----------------")
         return BaseResponse(status="success", message="Product created.", data=product.dict(by_alias=True))
     except Exception as exc:
+        print("---------- error 404 -------" , exc)
         return _format_error(str(exc), 400)
 
 
@@ -87,7 +91,9 @@ async def update_product(
     db: AsyncIOMotorDatabase = Depends(get_database),
     current_admin=Depends(get_current_admin),
 ):
+    print("------------------ product update request 1.0-----------------")
     try:
+        print("------------------ product update request -----------------")
         payload = ProductUpdateRequest(
             product_title=product_title,
             sub_title=sub_title,
@@ -102,6 +108,7 @@ async def update_product(
         product = await service.update_product(product_id, payload, image=product_image)
         return BaseResponse(status="success", message="Product updated.", data=product.dict(by_alias=True))
     except ValueError as exc:
+        print("------------------ product value error -----------------")
         return _format_error(str(exc), 400)
     except LookupError as exc:
         return _format_error(str(exc), 404)

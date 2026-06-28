@@ -1,0 +1,27 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import LoginPage from '../pages/LoginPage';
+import DashboardPage from '../pages/DashboardPage';
+import ProductsPage from '../pages/ProductsPage';
+import AdminsPage from '../pages/AdminsPage';
+import ProtectedRoute from './ProtectedRoute';
+
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Toaster position="top-right" />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/admins" element={<AdminsPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default AppRoutes;
