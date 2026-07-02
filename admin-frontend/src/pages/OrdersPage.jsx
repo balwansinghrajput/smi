@@ -41,13 +41,13 @@ function OrdersPage() {
                 {orders.map((order) => (
                   <tr key={order.id}>
                     <td className="py-4 font-mono text-xs">{order.id}</td>
-                    <td className="py-4">{order.user_id}</td>
-                    <td className="py-4 font-medium">${order.total_amount.toFixed(2)}</td>
+                    <td className="py-4">{order.userId}</td>
+                    <td className="py-4 font-medium">${order.total?.toFixed(2)}</td>
                     <td className="py-4">
                       <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        order.payment_status === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                        order.payment?.status === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
                       }`}>
-                        {order.payment_status}
+                        {order.payment?.status}
                       </span>
                     </td>
                     <td className="py-4">

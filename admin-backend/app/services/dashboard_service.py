@@ -13,8 +13,8 @@ class DashboardService:
 
         # Calculate total revenue from paid or delivered orders
         revenue_pipeline = [
-            {"$match": {"status": {"$in": ["delivered", "shipped", "processing"]}, "payment_status": "paid"}},
-            {"$group": {"_id": None, "total": {"$sum": "$total_amount"}}}
+            {"$match": {"status": {"$in": ["delivered", "shipped", "processing", "confirmed"]}, "payment.status": "paid"}},
+            {"$group": {"_id": None, "total": {"$sum": "$total"}}}
         ]
         revenue_cursor = self.db["orders"].aggregate(revenue_pipeline)
         revenue_result = await revenue_cursor.to_list(length=1)

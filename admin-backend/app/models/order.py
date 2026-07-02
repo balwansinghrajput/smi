@@ -1,25 +1,38 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 class OrderItem(BaseModel):
-    product_id: str
-    product_name: str
+    id: str
+    productId: str
     quantity: int
-    price: float
-    image_url: Optional[str] = None
+    product: Dict[str, Any]
+    lineTotal: float
 
 class ShippingAddress(BaseModel):
-    street: str
+    fullName: str
+    phone: str
+    email: str
+    address: str
     city: str
     state: str
-    zip_code: str
-    country: str
+    pincode: str
+
+class PaymentInfo(BaseModel):
+    method: str
+    status: str
+    provider: Optional[str] = None
+    paymentUrl: Optional[str] = None
+    transactionId: Optional[str] = None
 
 class OrderDocument(BaseModel):
-    user_id: str
+    userId: str
     items: List[OrderItem]
-    total_amount: float
-    status: str = Field(default="pending") # pending, processing, shipped, delivered, cancelled, refunded
-    payment_status: str = Field(default="pending") # pending, paid, failed, refunded
-    payment_method: str = Field(default="cod") # cod, online
-    shipping_address: ShippingAddress
+    shippingAddress: ShippingAddress
+    subtotal: float
+    shipping: float
+    tax: float
+    total: float
+    totalQuantity: int
+    deliveryOption: str
+    payment: PaymentInfo
+    status: str = Field(default="pending")
