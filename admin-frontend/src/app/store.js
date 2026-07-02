@@ -3,6 +3,14 @@ import createSagaMiddleware from 'redux-saga';
 import authReducer from '../features/auth/authSlice';
 import productsReducer from '../features/products/productsSlice';
 import adminsReducer from '../features/admins/adminsSlice';
+import categoriesReducer from '../features/categories/categoriesSlice';
+import brandsReducer from '../features/brands/brandsSlice';
+import ordersReducer from '../features/orders/ordersSlice';
+import usersReducer from '../features/users/usersSlice';
+import reviewsReducer from '../features/reviews/reviewsSlice';
+import couponsReducer from '../features/coupons/couponsSlice';
+import settingsReducer from '../features/settings/settingsSlice';
+import dashboardReducer from '../features/dashboard/dashboardSlice';
 import rootSaga from './rootSaga';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -12,6 +20,14 @@ export const store = configureStore({
     auth: authReducer,
     products: productsReducer,
     admins: adminsReducer,
+    categories: categoriesReducer,
+    brands: brandsReducer,
+    orders: ordersReducer,
+    users: usersReducer,
+    reviews: reviewsReducer,
+    coupons: couponsReducer,
+    settings: settingsReducer,
+    dashboard: dashboardReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(sagaMiddleware),

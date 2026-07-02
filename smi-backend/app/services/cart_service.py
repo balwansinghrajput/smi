@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.config.settings import settings
 from app.schemas.cart import CartAdd, CartItemOut, CartOut, CartUpdate
 from app.services.product_service import ProductService
-from app.utils.errors import BadRequestError
+from app.utils.errors import BadRequestError, NotFoundError
 
 
 class CartService:
@@ -35,19 +35,27 @@ class CartService:
         subtotal = 0.0
         total_quantity = 0
 
+        valid_items: list[dict] = []
         for item in doc.get("items", []):
             try:
                 product = await self.products.get(item["productId"])
-            except Exception:
+            except NotFoundError:
                 stock_errors.append(f"Product {item['productId']} is unavailable")
                 continue
             quantity = int(item.get("quantity", 1))
             if quantity > product.stockCount:
                 stock_errors.append(f"{product.name} has only {product.stockCount} in stock")
+                quantity = product.stockCount
+            if quantity <= 0:
+                continue
             line_total = product.price * quantity
             subtotal += line_total
             total_quantity += quantity
             output.append(CartItemOut(id=item["productId"], productId=item["productId"], quantity=quantity, product=product, lineTotal=line_total))
+            valid_items.append({"productId": item["productId"], "quantity": quantity})
+
+        if len(valid_items) != len(doc.get("items", [])):
+            await self._save_items(user_id, valid_items)
 
         shipping = 0 if subtotal >= settings.FREE_SHIPPING_THRESHOLD or subtotal == 0 else settings.SHIPPING_FLAT
         if delivery_option == "express" and subtotal > 0:

@@ -4,6 +4,13 @@ import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProductsPage from '../pages/ProductsPage';
 import AdminsPage from '../pages/AdminsPage';
+import CategoriesPage from '../pages/CategoriesPage';
+import BrandsPage from '../pages/BrandsPage';
+import OrdersPage from '../pages/OrdersPage';
+import UsersPage from '../pages/UsersPage';
+import ReviewsPage from '../pages/ReviewsPage';
+import CouponsPage from '../pages/CouponsPage';
+import SettingsPage from '../pages/SettingsPage';
 import ProtectedRoute from './ProtectedRoute';
 
 function AppRoutes() {
@@ -17,6 +24,13 @@ function AppRoutes() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/admins" element={<AdminsPage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/brands" element={<BrandsPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/coupons" element={<CouponsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

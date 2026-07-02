@@ -1,20 +1,17 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchProductsRequest } from '../features/products/productsSlice';
-import { fetchAdminsRequest } from '../features/admins/adminsSlice';
+import { fetchDashboardRequest } from '../features/dashboard/dashboardSlice';
 import { logout } from '../features/auth/authSlice';
 
 function DashboardPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const { items: products } = useSelector((state) => state.products);
-  const { items: admins } = useSelector((state) => state.admins);
+  const { data, loading } = useSelector((state) => state.dashboard);
 
   useEffect(() => {
-    dispatch(fetchProductsRequest());
-    dispatch(fetchAdminsRequest());
+    dispatch(fetchDashboardRequest());
   }, [dispatch]);
 
   return (
@@ -31,18 +28,38 @@ function DashboardPage() {
             <button onClick={() => dispatch(logout())} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-950">Logout</button>
           </div>
         </header>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <p className="text-sm text-zinc-400">Products</p>
-            <p className="mt-2 text-3xl font-semibold">{products.length}</p>
+        
+        {loading ? (
+          <p className="text-zinc-400">Loading dashboard data...</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 cursor-pointer hover:bg-zinc-800" onClick={() => navigate('/users')}>
+              <p className="text-sm text-zinc-400">Total Users</p>
+              <p className="mt-2 text-3xl font-semibold">{data?.total_users || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 cursor-pointer hover:bg-zinc-800" onClick={() => navigate('/orders')}>
+              <p className="text-sm text-zinc-400">Total Orders</p>
+              <p className="mt-2 text-3xl font-semibold">{data?.total_orders || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 cursor-pointer hover:bg-zinc-800" onClick={() => navigate('/products')}>
+              <p className="text-sm text-zinc-400">Products</p>
+              <p className="mt-2 text-3xl font-semibold">{data?.total_products || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+              <p className="text-sm text-zinc-400">Revenue</p>
+              <p className="mt-2 text-3xl font-semibold">${(data?.total_revenue || 0).toFixed(2)}</p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <p className="text-sm text-zinc-400">Admins</p>
-            <p className="mt-2 text-3xl font-semibold">{admins.length}</p>
-          </div>
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <p className="text-sm text-zinc-400">Status</p>
-            <p className="mt-2 text-3xl font-semibold">Online</p>
+        )}
+
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Quick Links</h2>
+          <div className="flex flex-wrap gap-4">
+            <button onClick={() => navigate('/categories')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Categories</button>
+            <button onClick={() => navigate('/brands')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Brands</button>
+            <button onClick={() => navigate('/reviews')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Reviews</button>
+            <button onClick={() => navigate('/coupons')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Coupons</button>
+            <button onClick={() => navigate('/settings')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Settings</button>
           </div>
         </div>
       </div>
