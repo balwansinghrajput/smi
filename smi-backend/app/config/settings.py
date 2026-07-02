@@ -28,9 +28,12 @@ class Settings(BaseSettings):
     FREE_SHIPPING_THRESHOLD: int = 5000
     EXPRESS_DELIVERY_AMOUNT: int = 149
 
-    ONLINE_PAYMENT_PROVIDER: str = "mock"
+    ONLINE_PAYMENT_PROVIDER: str = "razorpay"
     PAYMENT_SUCCESS_URL: str = "http://localhost:5173/checkout/success"
     PAYMENT_CANCEL_URL: str = "http://localhost:5173/checkout/cancel"
+
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 

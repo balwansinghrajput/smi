@@ -63,6 +63,11 @@ export default function Navbar() {
                 {link.label}
               </NavLink>
             ))}
+            {isAuthenticated && (
+              <NavLink to="/orders" className={linkClass}>
+                My Orders
+              </NavLink>
+            )}
           </div>
 
           <form
@@ -84,6 +89,7 @@ export default function Navbar() {
           </form>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Cart icon */}
             <Link
               to="/cart"
               className="relative rounded-lg p-2 text-muted transition-colors hover:bg-secondary hover:text-accent"
@@ -101,7 +107,13 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <div className="hidden items-center gap-2 sm:flex">
-                <span className="text-sm text-muted">Hi, {user?.name?.split(' ')[0]}</span>
+                <Link
+                  to="/orders"
+                  className="text-sm text-muted transition-colors hover:text-accent"
+                  aria-label="My orders"
+                >
+                  Hi, {user?.name?.split(' ')[0]}
+                </Link>
                 <button type="button" onClick={handleLogout} className="btn-ghost text-sm">
                   Logout
                 </button>
@@ -112,6 +124,7 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Mobile menu toggle */}
             <button
               type="button"
               onClick={() => dispatch(toggleMobileMenu())}
@@ -130,6 +143,7 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="border-t border-border py-4 lg:hidden">
             <form onSubmit={handleSearch} className="mb-4 md:hidden" role="search">
@@ -153,6 +167,15 @@ export default function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
+              {isAuthenticated && (
+                <NavLink
+                  to="/orders"
+                  className={linkClass}
+                  onClick={() => dispatch(closeMobileMenu())}
+                >
+                  My Orders
+                </NavLink>
+              )}
               {isAuthenticated ? (
                 <button type="button" onClick={handleLogout} className="btn-ghost justify-start">
                   Logout
