@@ -74,3 +74,6 @@ class ReviewService:
         await self.repository.delete(review_id)
         return await self.summary(existing["productId"])
 
+    async def featured_testimonials(self, limit: int = 4) -> list[ReviewOut]:
+        docs = await self.repository.list_featured(limit)
+        return [self.normalize(doc) for doc in docs]

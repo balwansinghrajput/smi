@@ -18,7 +18,15 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Auth', 'Cart'],
     }),
+    loginWithGoogle: builder.mutation({
+      query: (tokenData) => ({
+        url: '/google',
+        method: 'POST',
+        data: tokenData,
+      }),
+      invalidatesTags: ['Auth', 'Cart'],
+    }),
   }),
 })
 
-export const { useLoginMutation, useRegisterMutation } = authApi
+export const { useLoginMutation, useRegisterMutation, useLoginWithGoogleMutation } = authApi

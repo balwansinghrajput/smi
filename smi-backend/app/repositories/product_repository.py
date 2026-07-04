@@ -15,11 +15,49 @@ class ProductRepository:
     def active_filter(self) -> dict[str, Any]:
         return {"status": {"$ne": "archive"}}
 
+    def _with_reviews(self) -> list[dict]:
+        return [
+            {
+                "$lookup": {
+                    "from": "reviews",
+                    "let": {"prod_id": {"$toString": "$_id"}},
+                    "pipeline": [
+                        {"$match": {"$expr": {"$eq": ["$productId", "$$prod_id"]}}}
+                    ],
+                    "as": "reviews_data"
+                }
+            },
+            {
+                "$addFields": {
+                    "reviewCount": {"$size": "$reviews_data"},
+                    "rating": {
+                        "$cond": {
+                            "if": {"$gt": [{"$size": "$reviews_data"}, 0]},
+                            "then": {"$round": [{"$avg": "$reviews_data.rating"}, 1]},
+                            "else": 0
+                        }
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "reviews_data": 0
+                }
+            }
+        ]
+
     async def list(self, page: int, page_size: int, filters: dict | None = None) -> tuple[list[dict], int]:
         query = {**self.active_filter(), **(filters or {})}
         skip = (page - 1) * page_size
         total = await self.collection.count_documents(query)
-        cursor = self.collection.find(query).sort("_id", -1).skip(skip).limit(page_size)
+        pipeline = [
+            {"$match": query},
+            {"$sort": {"_id": -1}},
+            {"$skip": skip},
+            {"$limit": page_size},
+            *self._with_reviews()
+        ]
+        cursor = self.collection.aggregate(pipeline)
         return [stringify_id(doc) async for doc in cursor], total
 
     async def search(self, q: str, page: int, page_size: int) -> tuple[list[dict], int]:
@@ -38,18 +76,34 @@ class ProductRepository:
         }
         skip = (page - 1) * page_size
         total = await self.collection.count_documents(query)
-        cursor = self.collection.find(query).sort("_id", -1).skip(skip).limit(page_size)
+        pipeline = [
+            {"$match": query},
+            {"$sort": {"_id": -1}},
+            {"$skip": skip},
+            {"$limit": page_size},
+            *self._with_reviews()
+        ]
+        cursor = self.collection.aggregate(pipeline)
         return [stringify_id(doc) async for doc in cursor], total
 
     async def get_by_id(self, product_id: str) -> dict | None:
         object_id = validate_object_id(product_id, "product id")
-        return stringify_id(await self.collection.find_one({"_id": object_id, **self.active_filter()}))
+        pipeline = [
+            {"$match": {"_id": object_id, **self.active_filter()}},
+            *self._with_reviews()
+        ]
+        cursor = self.collection.aggregate(pipeline)
+        docs = [stringify_id(doc) async for doc in cursor]
+        return docs[0] if docs else None
 
     async def related(self, product: dict, limit: int = 4) -> list[dict]:
         category = product.get("category")
-        cursor = self.collection.find(
-            {"_id": {"$ne": ObjectId(product["id"])}, "category": category, **self.active_filter()}
-        ).limit(limit)
+        pipeline = [
+            {"$match": {"_id": {"$ne": ObjectId(product["id"])}, "category": category, **self.active_filter()}},
+            {"$limit": limit},
+            *self._with_reviews()
+        ]
+        cursor = self.collection.aggregate(pipeline)
         return [stringify_id(doc) async for doc in cursor]
 
     async def categories(self) -> list[dict]:

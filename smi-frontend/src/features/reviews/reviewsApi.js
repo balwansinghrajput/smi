@@ -2,6 +2,10 @@ import { baseApi } from '@/api/baseApi'
 
 export const reviewsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getFeaturedReviews: builder.query({
+      query: () => '/api/reviews/featured',
+      providesTags: ['Review'],
+    }),
     getProductReviews: builder.query({
       query: (productId) => ({ url: `/api/reviews/product/${productId}` }),
       providesTags: (result, error, productId) => [{ type: 'Review', id: productId }],
@@ -33,6 +37,7 @@ export const reviewsApi = baseApi.injectEndpoints({
 })
 
 export const {
+  useGetFeaturedReviewsQuery,
   useGetProductReviewsQuery,
   useAddReviewMutation,
   useUpdateReviewMutation,

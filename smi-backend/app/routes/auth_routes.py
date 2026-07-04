@@ -63,3 +63,44 @@ async def update_profile(
     user = await UserRepository(db).update(current_user["id"], data)
     return public_user(user)
 
+
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from app.config.settings import settings
+from app.schemas.auth import GoogleLoginRequest
+
+@router.post("/google", response_model=AuthResponse)
+async def google_login(payload: GoogleLoginRequest, db: AsyncIOMotorDatabase = Depends(get_database)):
+    try:
+        # Verify the token with Google
+        idinfo = id_token.verify_oauth2_token(
+            payload.token, google_requests.Request(), settings.GOOGLE_CLIENT_ID
+        )
+
+        email = idinfo.get("email")
+        name = idinfo.get("name")
+        
+        if not email:
+            raise BadRequestError("Email not found in Google token")
+
+        repo = UserRepository(db)
+        user = await repo.get_by_email(email)
+
+        # If user doesn't exist, create them implicitly
+        if not user:
+            user = await repo.create(
+                {
+                    "name": name or "Google User",
+                    "email": email.lower(),
+                    "phone": None,
+                    "passwordHash": None,
+                    "auth_provider": "google",
+                }
+            )
+            
+        token = create_access_token(user["id"], {"email": user["email"]})
+        return AuthResponse(user=public_user(user), token=token)
+
+    except ValueError:
+        # Invalid token
+        raise UnauthorizedError("Invalid Google token")

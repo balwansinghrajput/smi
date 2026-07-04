@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { COMPANY } from '@/constants'
-import { heroImage, heroVideo } from '@/constants/mockData'
-
+import heroImage from '../../../assets/images/Gemini_Generated_Image_l47jmll47jmll47j.webp'
+import heroVideo from '../../../assets/videos/Shri_Shyam_Enterprises_bike_batt_202606151356.mp4'
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-secondary" aria-label="Hero banner">

@@ -1,6 +1,30 @@
-import { testimonials } from '@/constants/mockData'
+import { useGetFeaturedReviewsQuery } from '@/features/reviews/reviewsApi'
 
 export default function Testimonials() {
+  const { data: testimonials = [], isLoading } = useGetFeaturedReviewsQuery()
+
+  if (isLoading) {
+    return (
+      <section className="section-padding bg-secondary" aria-labelledby="testimonials-heading">
+        <div className="container-app">
+          <div className="mb-12 text-center">
+            <h2 id="testimonials-heading" className="mb-3 text-3xl font-bold text-text md:text-4xl">
+              Customer Reviews
+            </h2>
+            <p className="text-muted">What our customers and dealers say about us</p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="card aspect-square animate-pulse bg-border/40" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (testimonials.length === 0) return null;
+
   return (
     <section className="section-padding bg-secondary" aria-labelledby="testimonials-heading">
       <div className="container-app">
@@ -22,18 +46,18 @@ export default function Testimonials() {
                 ))}
               </div>
               <p className="mb-6 flex-1 text-sm leading-relaxed text-muted">
-                &ldquo;{item.text}&rdquo;
+                &ldquo;{item.comment}&rdquo;
               </p>
               <footer className="flex items-center gap-3">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-sm font-bold text-black"
                   aria-hidden="true"
                 >
-                  {item.avatar}
+                  {item.author.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <cite className="not-italic font-semibold text-text">{item.name}</cite>
-                  <p className="text-xs text-muted">{item.role}</p>
+                  <cite className="not-italic font-semibold text-text">{item.author}</cite>
+                  <p className="text-xs text-muted">{item.date}</p>
                 </div>
               </footer>
             </blockquote>

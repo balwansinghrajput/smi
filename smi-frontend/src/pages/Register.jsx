@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useRegisterMutation } from '@/features/auth/authApi'
+import { GoogleLogin } from '@react-oauth/google'
+import { useRegisterMutation, useLoginWithGoogleMutation } from '@/features/auth/authApi'
 import { useAppDispatch } from '@/hooks/redux'
 import { showToast } from '@/features/ui/uiSlice'
 import { validateEmail, validatePhone, validatePassword } from '@/utils'
@@ -9,6 +10,7 @@ export default function Register() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [register, { isLoading }] = useRegisterMutation()
+  const [loginWithGoogle] = useLoginWithGoogleMutation()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -71,6 +73,21 @@ export default function Register() {
     setForm((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      await loginWithGoogle({ token: credentialResponse.credential }).unwrap()
+      dispatch(showToast({ type: 'success', message: 'Signed in with Google successfully!' }))
+      navigate('/')
+    } catch (err) {
+      dispatch(
+        showToast({
+          type: 'error',
+          message: err.data?.message || 'Google Sign In failed',
+        })
+      )
     }
   }
 
@@ -170,6 +187,25 @@ export default function Register() {
             {isLoading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-surface px-2 text-muted">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => dispatch(showToast({ type: 'error', message: 'Google Sign In failed' }))}
+              text="signup_with"
+            />
+          </div>
+        </div>
 
         <p className="mt-6 text-center text-sm text-muted">
           Already have an account?{' '}

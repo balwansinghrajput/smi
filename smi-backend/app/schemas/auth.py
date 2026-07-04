@@ -29,3 +29,6 @@ class AuthResponse(BaseModel):
     user: UserOut
     token: str
 
+
+class GoogleLoginRequest(BaseModel):
+    token: str = Field(..., description="The JWT token from Google identity services")

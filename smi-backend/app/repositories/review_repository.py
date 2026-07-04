@@ -41,3 +41,7 @@ class ReviewRepository:
         object_id = validate_object_id(review_id, "review id")
         await self.collection.delete_one({"_id": object_id})
 
+    async def list_featured(self, limit: int = 4) -> list[dict]:
+        # Fetch 5-star reviews to use as featured testimonials
+        cursor = self.collection.find({"rating": 5}).sort("createdAt", -1).limit(limit)
+        return [stringify_id(doc) async for doc in cursor]

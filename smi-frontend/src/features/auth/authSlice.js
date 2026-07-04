@@ -35,6 +35,12 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         setStorageItem(AUTH_KEY, action.payload)
       })
+      .addMatcher(authApi.endpoints.loginWithGoogle.matchFulfilled, (state, action) => {
+        state.user = action.payload.user
+        state.token = action.payload.token
+        state.isAuthenticated = true
+        setStorageItem(AUTH_KEY, action.payload)
+      })
   },
 })
 

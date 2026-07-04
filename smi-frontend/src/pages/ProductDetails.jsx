@@ -191,7 +191,7 @@ export default function ProductDetails() {
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <StarRating rating={product.rating} />
               <span className="text-sm text-muted">
-                {product.rating} ({product.reviewCount + reviews.length} reviews)
+                {product.rating} ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
               </span>
             </div>
 
