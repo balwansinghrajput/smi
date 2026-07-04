@@ -23,7 +23,7 @@ function BrandsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">Inventory</p>
             <h1 className="text-3xl font-semibold">Brands</h1>
@@ -35,7 +35,7 @@ function BrandsPage() {
             <h2 className="text-xl font-semibold">Brand list</h2>
             <div className="mt-4 space-y-3">
               {brands.map((brand) => (
-                <div key={brand.id} className="flex items-center justify-between rounded-xl border border-zinc-800 p-4">
+                <div key={brand.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-zinc-800 p-4">
                   <div className="flex items-center gap-4">
                     {brand.image_url && <img src={brand.image_url} alt={brand.name} className="h-10 w-10 rounded-md object-cover" />}
                     <div>

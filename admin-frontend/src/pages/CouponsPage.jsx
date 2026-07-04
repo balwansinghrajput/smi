@@ -29,7 +29,7 @@ function CouponsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">Marketing</p>
             <h1 className="text-3xl font-semibold">Coupons</h1>
@@ -41,7 +41,7 @@ function CouponsPage() {
             <h2 className="text-xl font-semibold">Coupon list</h2>
             <div className="mt-4 space-y-3">
               {coupons.map((coupon) => (
-                <div key={coupon.id} className="flex items-center justify-between rounded-xl border border-zinc-800 p-4">
+                <div key={coupon.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-zinc-800 p-4">
                   <div>
                     <p className="font-mono font-bold tracking-widest text-indigo-400 uppercase">{coupon.code}</p>
                     <p className="text-sm text-zinc-400">

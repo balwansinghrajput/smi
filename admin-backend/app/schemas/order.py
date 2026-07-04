@@ -18,6 +18,7 @@ class OrderCreateRequest(BaseModel):
 class OrderStatusUpdateRequest(BaseModel):
     status: Optional[str] = None
     payment_status: Optional[str] = None
+    paid_amount: Optional[float] = None
 
 class OrderResponse(BaseModel):
     id: str = Field(..., alias="_id")

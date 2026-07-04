@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database.mongodb import get_database
@@ -10,8 +10,8 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("", response_model=OrderOut)
-async def create_order(payload: CheckoutRequest, current_user: dict = Depends(get_current_user), db: AsyncIOMotorDatabase = Depends(get_database)):
-    return await OrderService(db).create_order(current_user["id"], payload)
+async def create_order(payload: CheckoutRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user), db: AsyncIOMotorDatabase = Depends(get_database)):
+    return await OrderService(db).create_order(current_user["id"], payload, background_tasks)
 
 
 @router.get("", response_model=list[OrderOut])

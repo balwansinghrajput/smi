@@ -47,6 +47,23 @@ const productsSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    updateProductRequest: (state) => {
+      state.loading = true;
+    },
+    updateProductSuccess: (state, action) => {
+      state.loading = false;
+      const index = state.items.findIndex((item) => item.id === action.payload.id);
+      if (index !== -1) {
+        state.items[index] = action.payload;
+      }
+      if (state.selectedProduct && state.selectedProduct.id === action.payload.id) {
+        state.selectedProduct = action.payload;
+      }
+    },
+    updateProductFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     setSelectedProduct: (state, action) => {
       state.selectedProduct = action.payload;
     },
@@ -63,6 +80,9 @@ export const {
   deleteProductRequest,
   deleteProductSuccess,
   deleteProductFailure,
+  updateProductRequest,
+  updateProductSuccess,
+  updateProductFailure,
   setSelectedProduct,
 } = productsSlice.actions;
 

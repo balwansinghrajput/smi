@@ -55,6 +55,7 @@ function DashboardPage() {
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Quick Links</h2>
           <div className="flex flex-wrap gap-4">
+            <button onClick={() => navigate('/revenue')} className="rounded-lg border border-indigo-500/50 bg-indigo-500/10 text-indigo-400 px-4 py-2 text-sm font-medium hover:bg-indigo-500/20 transition-colors">Product Revenue</button>
             <button onClick={() => navigate('/categories')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Categories</button>
             <button onClick={() => navigate('/brands')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Brands</button>
             <button onClick={() => navigate('/reviews')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Reviews</button>

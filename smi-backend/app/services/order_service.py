@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 
+from fastapi import BackgroundTasks
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.schemas.order import CheckoutRequest, OrderOut, OrderStatusUpdate
 from app.services.cart_service import CartService
 from app.services.payment_service import PaymentService
+from app.services.email_service import EmailService
 from app.utils.errors import BadRequestError, NotFoundError
 from app.utils.object_id import stringify_id, validate_object_id
 
@@ -16,7 +18,7 @@ class OrderService:
         self.cart = CartService(db)
         self.payments = PaymentService()
 
-    async def create_order(self, user_id: str, payload: CheckoutRequest) -> OrderOut:
+    async def create_order(self, user_id: str, payload: CheckoutRequest, background_tasks: BackgroundTasks = None) -> OrderOut:
         cart = await self.cart.get_cart(user_id, payload.deliveryOption)
         if not cart.items:
             raise BadRequestError("Cart is empty")
@@ -46,6 +48,15 @@ class OrderService:
         document["payment"] = payment.model_dump()
         if payload.paymentMethod == "cod":
             await self.cart.clear(user_id)
+            
+        if background_tasks:
+            background_tasks.add_task(
+                EmailService.send_new_order_email, 
+                order_id=str(result.inserted_id), 
+                total=cart.total, 
+                user_id=user_id
+            )
+            
         return self.normalize(stringify_id(document))
 
     def normalize(self, doc: dict) -> OrderOut:

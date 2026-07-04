@@ -23,6 +23,7 @@ class PaymentInfo(BaseModel):
     provider: Optional[str] = None
     paymentUrl: Optional[str] = None
     transactionId: Optional[str] = None
+    paidAmount: Optional[float] = None
 
 class OrderDocument(BaseModel):
     userId: str

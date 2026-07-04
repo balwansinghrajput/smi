@@ -32,6 +32,7 @@ class PaymentInfo(BaseModel):
     provider: str | None = None
     paymentUrl: str | None = None
     transactionId: str | None = None
+    paidAmount: float | None = None
 
 
 class OrderOut(BaseModel):

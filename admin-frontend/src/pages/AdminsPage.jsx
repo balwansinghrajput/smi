@@ -13,7 +13,7 @@ function AdminsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">Access</p>
             <h1 className="text-3xl font-semibold">Admins</h1>
@@ -23,7 +23,7 @@ function AdminsPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <div className="space-y-3">
             {admins.map((admin) => (
-              <div key={admin.id} className="flex items-center justify-between rounded-xl border border-zinc-800 p-4">
+              <div key={admin.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-zinc-800 p-4">
                 <div>
                   <p className="font-medium">{admin.email}</p>
                   <p className="text-sm text-zinc-400">{admin.role} • {admin.is_active ? 'Active' : 'Inactive'}</p>

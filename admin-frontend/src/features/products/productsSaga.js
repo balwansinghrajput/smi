@@ -1,7 +1,7 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
 import axios from 'axios';
 import client from '../../api/client';
-import { createProductFailure, createProductRequest, createProductSuccess, deleteProductFailure, deleteProductRequest, deleteProductSuccess, fetchProductsFailure, fetchProductsRequest, fetchProductsSuccess } from './productsSlice';
+import { createProductFailure, createProductRequest, createProductSuccess, deleteProductFailure, deleteProductRequest, deleteProductSuccess, fetchProductsFailure, fetchProductsRequest, fetchProductsSuccess, updateProductRequest, updateProductSuccess, updateProductFailure } from './productsSlice';
 
 function* handleFetchProducts() {
   try {
@@ -38,10 +38,29 @@ function* handleDeleteProduct(action) {
   }
 }
 
+function* handleUpdateProduct(action) {
+  try {
+    const { id, data } = action.payload;
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value);
+      }
+    });
+    const response = yield call(client.put, `/products/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    yield put(updateProductSuccess(response.data.data));
+  } catch (error) {
+    yield put(updateProductFailure(error.response?.data?.message || 'Unable to update product'));
+  }
+}
+
 function* watchProducts() {
   yield takeEvery(fetchProductsRequest.type, handleFetchProducts);
   yield takeEvery(createProductRequest.type, handleCreateProduct);
   yield takeEvery(deleteProductRequest.type, handleDeleteProduct);
+  yield takeEvery(updateProductRequest.type, handleUpdateProduct);
 }
 
 export function* productsSaga() {

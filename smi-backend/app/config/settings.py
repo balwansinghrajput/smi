@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     
     GOOGLE_CLIENT_ID: str = ""
 
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = ""
+    MAIL_PORT: int = 587
+    MAIL_SERVER: str = ""
+    ADMIN_EMAIL: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
     @field_validator("CORS_ORIGINS", mode="before")

@@ -13,6 +13,8 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     role: str
     is_blocked: bool
+    total_orders: int = 0
+    total_spent: float = 0.0
 
     class Config:
         validate_by_name = True

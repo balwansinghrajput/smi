@@ -15,6 +15,10 @@ class UserService:
     def _normalize_user_document(self, document: Dict[str, Any]) -> Dict[str, Any]:
         if document is None:
             return document
+        if "role" not in document:
+            document["role"] = "user"
+        if "is_blocked" not in document:
+            document["is_blocked"] = False
         return document
 
     async def list_users(self, page: int = 1, page_size: int = 50) -> PaginatedUsers:
@@ -24,7 +28,28 @@ class UserService:
         total_users = await self.db[self.COLLECTION_NAME].count_documents({})
         total_pages = max((total_users + page_size - 1) // page_size, 1)
 
-        cursor = self.db[self.COLLECTION_NAME].find().skip(skip).limit(page_size)
+        pipeline = [
+            {"$addFields": {"userIdString": {"$toString": "$_id"}}},
+            {
+                "$lookup": {
+                    "from": "orders",
+                    "localField": "userIdString",
+                    "foreignField": "userId",
+                    "as": "user_orders"
+                }
+            },
+            {
+                "$addFields": {
+                    "total_orders": {"$size": "$user_orders"},
+                    "total_spent": {"$sum": "$user_orders.total"}
+                }
+            },
+            {"$project": {"user_orders": 0, "userIdString": 0}},
+            {"$skip": skip},
+            {"$limit": page_size}
+        ]
+
+        cursor = self.db[self.COLLECTION_NAME].aggregate(pipeline)
         users = []
         async for user in cursor:
             user["_id"] = str(user["_id"])

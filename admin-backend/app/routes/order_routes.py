@@ -23,7 +23,17 @@ async def create_order(
     try:
         service = OrderService(db)
         order = await service.create_order(payload)
-        return BaseResponse(status="success", message="Order created.", data=order.dict(by_alias=True))
+        return BaseResponse(status="success", message="Order created.", data=order.dict())
+    except Exception as exc:
+        return _format_error(str(exc), 400)
+
+
+@router.get("/revenue/products", response_model=BaseResponse, dependencies=[Depends(require_roles("super_admin", "admin"))])
+async def get_product_revenue(db: AsyncIOMotorDatabase = Depends(get_database)):
+    try:
+        service = OrderService(db)
+        data = await service.get_product_revenue()
+        return BaseResponse(status="success", message="Product revenue retrieved.", data=data)
     except Exception as exc:
         return _format_error(str(exc), 400)
 
@@ -43,7 +53,7 @@ async def get_order(order_id: str, db: AsyncIOMotorDatabase = Depends(get_databa
     try:
         service = OrderService(db)
         order = await service.get_order(order_id)
-        return BaseResponse(status="success", message="Order retrieved.", data=order.dict(by_alias=True))
+        return BaseResponse(status="success", message="Order retrieved.", data=order.dict())
     except ValueError as exc:
         return _format_error(str(exc), 400)
     except LookupError as exc:
@@ -62,7 +72,7 @@ async def update_order_status(
     try:
         service = OrderService(db)
         order = await service.update_order_status(order_id, payload)
-        return BaseResponse(status="success", message="Order status updated.", data=order.dict(by_alias=True))
+        return BaseResponse(status="success", message="Order status updated.", data=order.dict())
     except ValueError as exc:
         return _format_error(str(exc), 400)
     except LookupError as exc:
