@@ -3,7 +3,7 @@ import { apiClient } from './http'
 
 const axiosBaseQuery =
   () =>
-  async (args) => {
+  async (args, api) => {
     const { url, method = 'GET', data, params } =
       typeof args === 'string' ? { url: args } : args || {}
 
@@ -12,6 +12,17 @@ const axiosBaseQuery =
       return { data: result.data }
     } catch (error) {
       const err = error.response
+
+      if (err?.status === 401) {
+        if (localStorage.getItem('smi_auth')) {
+          api.dispatch({ type: 'auth/logout' })
+          api.dispatch({
+            type: 'ui/showToast',
+            payload: { type: 'error', message: 'Session expired. Please log in again.' },
+          })
+        }
+      }
+
       return {
         error: {
           status: err?.status || 500,
