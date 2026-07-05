@@ -18,7 +18,7 @@ class OrderService:
         self.cart = CartService(db)
         self.payments = PaymentService()
 
-    async def create_order(self, user_id: str, payload: CheckoutRequest, background_tasks: BackgroundTasks = None) -> OrderOut:
+    async def create_order(self, user_id: str, user_email: str, payload: CheckoutRequest, background_tasks: BackgroundTasks = None) -> OrderOut:
         cart = await self.cart.get_cart(user_id, payload.deliveryOption)
         if not cart.items:
             raise BadRequestError("Cart is empty")
@@ -55,6 +55,11 @@ class OrderService:
                 order_id=str(result.inserted_id), 
                 total=cart.total, 
                 user_id=user_id
+            )
+            background_tasks.add_task(
+                EmailService.send_order_confirmation_email,
+                user_email=user_email,
+                order_details=document
             )
             
         return self.normalize(stringify_id(document))

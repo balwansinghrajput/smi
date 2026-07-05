@@ -11,7 +11,7 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.post("", response_model=OrderOut)
 async def create_order(payload: CheckoutRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user), db: AsyncIOMotorDatabase = Depends(get_database)):
-    return await OrderService(db).create_order(current_user["id"], payload, background_tasks)
+    return await OrderService(db).create_order(current_user["id"], current_user["email"], payload, background_tasks)
 
 
 @router.get("", response_model=list[OrderOut])

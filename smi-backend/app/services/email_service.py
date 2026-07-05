@@ -62,3 +62,62 @@ class EmailService:
             logger.info(f"Successfully sent new order email to {settings.ADMIN_EMAIL}")
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
+
+    @staticmethod
+    async def send_order_confirmation_email(user_email: str, order_details: dict):
+        if not conf:
+            logger.warning("Email configuration missing. Skipping order confirmation email.")
+            return
+
+        order_id = order_details.get("id") or order_details.get("_id")
+        products_html = "".join([f"<li>{item['quantity']}x {item['name']} - ${item['price']}</li>" for item in order_details.get("items", [])])
+        address = order_details.get("shippingAddress", {})
+        address_str = f"{address.get('street', '')}, {address.get('city', '')}, {address.get('state', '')} {address.get('zip', '')}"
+        
+        html = f"""
+        <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #4f46e5;">Order Confirmation</h2>
+            <p>Thank you for your order!</p>
+            <table style="width: 100%; max-width: 600px; border-collapse: collapse; margin-top: 15px;">
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Order ID:</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; font-family: monospace;">{order_id}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Status:</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; text-transform: capitalize;">{order_details.get("status", "pending")}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Payment Method:</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; text-transform: uppercase;">{order_details.get("payment", {}).get("method", "cod")}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Shipping Address:</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{address_str}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Total Amount:</strong></td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">${order_details.get("total", 0):.2f}</td>
+                </tr>
+            </table>
+            
+            <h3 style="margin-top: 20px;">Items Ordered</h3>
+            <ul>
+                {products_html}
+            </ul>
+        </div>
+        """
+
+        message = MessageSchema(
+            subject=f"Order Confirmation: #{str(order_id)[-8:]}",
+            recipients=[user_email],
+            body=html,
+            subtype=MessageType.html
+        )
+
+        try:
+            fm = FastMail(conf)
+            await fm.send_message(message)
+            logger.info(f"Successfully sent order confirmation email to {user_email}")
+        except Exception as e:
+            logger.error(f"Failed to send confirmation email: {e}")
