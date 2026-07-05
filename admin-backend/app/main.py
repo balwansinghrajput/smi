@@ -15,10 +15,14 @@ def create_application() -> FastAPI:
     )
 
     # Configure CORS (Cross-Origin Resource Sharing)
-    # Adjust allow_origins for production safety!
+    if settings.ENVIRONMENT == "production" and settings.FRONTEND_URL:
+        cors_origins = [settings.FRONTEND_URL]
+    else:
+        cors_origins = ["*"]
+
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"], 
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

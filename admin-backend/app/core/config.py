@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "FastAPI Application"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
+    FRONTEND_URL: str | None = None
     
     # Uvicorn settings
     HOST: str = "127.0.0.1"
