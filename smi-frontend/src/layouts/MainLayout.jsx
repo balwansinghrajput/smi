@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet, ScrollRestoration } from 'react-router-dom'
 import Navbar from '@/components/Navbar/Navbar'
 import Footer from '@/components/Footer/Footer'
 import Toast from '@/components/Toast/Toast'
@@ -16,6 +15,7 @@ export default function MainLayout() {
       </main>
       <Footer />
       <Toast />
+      <ScrollRestoration />
     </div>
   )
 }
@@ -39,6 +39,7 @@ export function AuthLayout() {
         </ErrorBoundary>
       </main>
       <Toast />
+      <ScrollRestoration />
     </div>
   )
 }

@@ -53,6 +53,8 @@ export default function ProductDetails() {
   const reviews = reviewsData?.reviews || []
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isBuyingNow, setIsBuyingNow] = useState(false)
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
     comment: '',
@@ -60,14 +62,20 @@ export default function ProductDetails() {
 
   const similarProducts = useMemo(() => (relatedProducts || []).slice(0, 4), [relatedProducts])
 
-  const handleAddToCart = () => {
-    addToCart(product.id, quantity)
+  const handleAddToCart = async () => {
+    setIsAddingToCart(true)
+    await addToCart(product.id, quantity)
+    setIsAddingToCart(false)
   }
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (product?.inStock) {
-      addToCart(product.id, quantity)
-      navigate('/checkout')
+      setIsBuyingNow(true)
+      const success = await addToCart(product.id, quantity)
+      setIsBuyingNow(false)
+      if (success) {
+        navigate('/checkout')
+      }
     }
   }
 
@@ -278,18 +286,38 @@ export default function ProductDetails() {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
-                  className="btn-primary w-full"
+                  disabled={!product.inStock || isAddingToCart || isBuyingNow}
+                  className="btn-primary w-full flex items-center justify-center gap-2"
                 >
-                  Add to Cart
+                  {isAddingToCart ? (
+                    <>
+                      <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Adding...
+                    </>
+                  ) : (
+                    'Add to Cart'
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  disabled={!product.inStock}
-                  className="btn-secondary w-full"
+                  disabled={!product.inStock || isAddingToCart || isBuyingNow}
+                  className="btn-secondary w-full flex items-center justify-center gap-2"
                 >
-                  Buy Now
+                  {isBuyingNow ? (
+                    <>
+                      <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    'Buy Now'
+                  )}
                 </button>
               </div>
             </div>

@@ -72,8 +72,8 @@ function OrdersPage() {
                   <p className="flex items-center gap-2"><span className="w-20 shrink-0 text-zinc-500">Customer:</span> <span className="truncate font-mono text-zinc-300">{order.userId}</span></p>
                   <p className="flex items-center gap-2"><span className="w-20 shrink-0 text-zinc-500">Amount:</span> <span className="text-zinc-300 font-medium text-emerald-400">${order.total?.toFixed(2)}</span></p>
                   
-                  {order.payment?.status === 'paid' && order.payment?.paidAmount !== undefined && (
-                    <p className="flex items-center gap-2"><span className="w-20 shrink-0 text-zinc-500">Paid Amt:</span> <span className="text-zinc-300">${order.payment.paidAmount.toFixed(2)}</span></p>
+                  {order.payment?.status === 'paid' && order.payment?.paidAmount != null && (
+                    <p className="flex items-center gap-2"><span className="w-20 shrink-0 text-zinc-500">Paid Amt:</span> <span className="text-zinc-300">${order.payment.paidAmount?.toFixed(2)}</span></p>
                   )}
                   
                   <div className="flex items-center gap-2 mt-2">

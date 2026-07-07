@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '@/utils'
 
@@ -22,9 +22,17 @@ function StarRating({ rating, reviewCount }) {
 }
 
 function ProductCard({ product, onAddToCart }) {
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault() // prevent link navigation if placed inside
+    setIsAdding(true)
+    await onAddToCart(product.id)
+    setIsAdding(false)
+  }
   return (
-    <article className="card group flex h-full flex-col overflow-hidden p-0">
-      <Link to={`/products/${product.id}`} className="relative block overflow-hidden">
+    <article className="card group relative flex h-full flex-col overflow-hidden p-0">
+      <div className="relative block overflow-hidden">
         <img
           src={product.images[0]}
           alt={product.name}
@@ -32,16 +40,16 @@ function ProductCard({ product, onAddToCart }) {
           className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {product.isNew && (
-          <span className="absolute left-3 top-3 rounded bg-accent px-2 py-0.5 text-xs font-bold text-black">
+          <span className="absolute left-3 top-3 z-10 rounded bg-accent px-2 py-0.5 text-xs font-bold text-black">
             NEW
           </span>
         )}
-      </Link>
+      </div>
 
       <div className="flex flex-1 flex-col p-4">
         <Link
           to={`/products/${product.id}`}
-          className="mb-2 line-clamp-2 font-semibold text-text transition-colors hover:text-accent"
+          className="mb-2 line-clamp-2 font-semibold text-text transition-colors hover:text-accent after:absolute after:inset-0"
         >
           {product.name}
         </Link>
@@ -63,7 +71,7 @@ function ProductCard({ product, onAddToCart }) {
           {product.capacity} · {product.voltage}
         </p>
 
-        <div className="mt-auto pt-4">
+        <div className="relative z-10 mt-auto pt-4">
           <span
             className={`mb-3 inline-block text-xs font-medium ${
               product.inStock ? 'text-success' : 'text-error'
@@ -74,12 +82,22 @@ function ProductCard({ product, onAddToCart }) {
 
           <button
             type="button"
-            onClick={() => onAddToCart(product.id)}
-            disabled={!product.inStock}
-            className="btn-primary w-full text-sm"
+            onClick={handleAddToCart}
+            disabled={!product.inStock || isAdding}
+            className="btn-primary w-full text-sm flex items-center justify-center gap-2"
             aria-label={`Add ${product.name} to cart`}
           >
-            Add to Cart
+            {isAdding ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Adding...
+              </>
+            ) : (
+              'Add to Cart'
+            )}
           </button>
         </div>
       </div>
