@@ -10,7 +10,7 @@ const initialState = {
     state: '',
     pincode: '',
   },
-  deliveryOption: 'standard',
+  deliveryMethodId: null,
   paymentMethod: 'cod',
   placingOrder: false,
   orderPlaced: false,
@@ -28,8 +28,8 @@ const checkoutSlice = createSlice({
     updateShippingAddress: (state, action) => {
       state.shippingAddress = { ...state.shippingAddress, ...action.payload }
     },
-    setDeliveryOption: (state, action) => {
-      state.deliveryOption = action.payload
+    setDeliveryMethodId: (state, action) => {
+      state.deliveryMethodId = action.payload
     },
     setPaymentMethod: (state, action) => {
       state.paymentMethod = action.payload
@@ -77,7 +77,7 @@ const checkoutSlice = createSlice({
 
 export const {
   updateShippingAddress,
-  setDeliveryOption,
+  setDeliveryMethodId,
   setPaymentMethod,
   placeOrder,
   placeOrderSuccess,

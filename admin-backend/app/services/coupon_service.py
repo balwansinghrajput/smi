@@ -137,3 +137,53 @@ class CouponService:
             raise LookupError("Coupon not found.")
 
         await self.db[self.COLLECTION_NAME].delete_one({"_id": object_id})
+
+    async def get_coupon_analytics(self, coupon_id: str) -> dict:
+        try:
+            object_id = ObjectId(coupon_id)
+        except InvalidId:
+            raise ValueError("Invalid coupon ID format.")
+
+        coupon = await self.db[self.COLLECTION_NAME].find_one({"_id": object_id})
+        if not coupon:
+            raise LookupError("Coupon not found.")
+
+        pipeline = [
+            {"$match": {"couponCode": coupon["code"], "status": {"$ne": "cancelled"}}},
+            {"$group": {"_id": "$userId", "usage_count": {"$sum": 1}}},
+            {
+                "$lookup": {
+                    "from": "users",
+                    "let": {"user_id_str": "$_id"},
+                    "pipeline": [
+                        {"$match": {"$expr": {"$eq": [{"$toString": "$_id"}, "$$user_id_str"]}}}
+                    ],
+                    "as": "user_info"
+                }
+            },
+            {"$unwind": {"path": "$user_info", "preserveNullAndEmptyArrays": True}},
+            {
+                "$project": {
+                    "user_id": "$_id",
+                    "name": {"$ifNull": ["$user_info.name", "Unknown"]},
+                    "email": {"$ifNull": ["$user_info.email", "Unknown"]},
+                    "usage_count": 1,
+                    "_id": 0
+                }
+            },
+            {"$sort": {"usage_count": -1}}
+        ]
+
+        cursor = self.db["orders"].aggregate(pipeline)
+        redemptions = await cursor.to_list(length=None)
+
+        total_redemptions = coupon.get("usage_count", 0)
+        remaining_usages = None
+        if coupon.get("max_uses") is not None:
+            remaining_usages = max(0, coupon["max_uses"] - total_redemptions)
+
+        return {
+            "total_redemptions": total_redemptions,
+            "remaining_usages": remaining_usages,
+            "redemptions_by_user": redemptions
+        }

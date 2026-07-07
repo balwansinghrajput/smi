@@ -50,3 +50,16 @@ class CouponResponse(BaseModel):
 class PaginatedCoupons(BaseModel):
     coupons: List[CouponResponse]
     pagination: dict
+
+
+class UserRedemption(BaseModel):
+    user_id: str
+    name: str
+    email: str
+    usage_count: int
+
+
+class CouponAnalyticsResponse(BaseModel):
+    total_redemptions: int
+    remaining_usages: Optional[int] = None
+    redemptions_by_user: List[UserRedemption]

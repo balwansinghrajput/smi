@@ -16,6 +16,7 @@ function ProductCreatePage() {
     price: '',
     stock: '',
     status: 'active',
+    has_shipping: true,
     tags: '',
     product_image: null,
   });
@@ -26,6 +27,7 @@ function ProductCreatePage() {
       ...form,
       price: Number(form.price),
       stock: Number(form.stock),
+      has_shipping: form.has_shipping,
       product_image: form.product_image,
     };
     dispatch(createProductRequest(payload));
@@ -91,6 +93,11 @@ function ProductCreatePage() {
             <div>
               <label className="mb-2 block text-sm font-medium text-zinc-400">Tags</label>
               <input className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none" placeholder="comma, separated, tags" value={form.tags} onChange={(event) => setForm({ ...form, tags: event.target.value })} />
+            </div>
+
+            <div className="flex items-center gap-3 py-2">
+              <input type="checkbox" id="has_shipping" className="h-5 w-5 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-zinc-900" checked={form.has_shipping} onChange={(e) => setForm({ ...form, has_shipping: e.target.checked })} />
+              <label htmlFor="has_shipping" className="text-sm font-medium text-zinc-300">Shipping charges apply to this product</label>
             </div>
             
             <div>

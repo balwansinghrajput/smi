@@ -27,6 +27,7 @@ class ProductOut(BaseModel):
     specifications: dict[str, Any] = Field(default_factory=dict)
     keywords: list[str] = Field(default_factory=list)
     createdAt: str | None = None
+    hasShipping: bool = True
 
 
 class ProductPage(BaseModel):

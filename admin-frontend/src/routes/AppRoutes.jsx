@@ -14,6 +14,7 @@ import UsersPage from '../pages/UsersPage';
 import ReviewsPage from '../pages/ReviewsPage';
 import CouponsPage from '../pages/CouponsPage';
 import SettingsPage from '../pages/SettingsPage';
+import ShippingPage from '../pages/ShippingPage';
 import ProtectedRoute from './ProtectedRoute';
 
 function AppRoutes() {
@@ -37,6 +38,7 @@ function AppRoutes() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/coupons" element={<CouponsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

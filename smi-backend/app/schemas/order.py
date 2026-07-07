@@ -7,7 +7,6 @@ from app.schemas.cart import CartItemOut
 
 
 PaymentMethod = Literal["cod", "online", "upi", "card"]
-DeliveryOption = Literal["standard", "express"]
 
 
 class ShippingAddress(BaseModel):
@@ -22,7 +21,7 @@ class ShippingAddress(BaseModel):
 
 class CheckoutRequest(BaseModel):
     shippingAddress: ShippingAddress
-    deliveryOption: DeliveryOption = "standard"
+    deliveryMethodId: str
     paymentMethod: PaymentMethod = "cod"
     couponCode: Optional[str] = None  # User-applied coupon code
 
@@ -47,7 +46,8 @@ class OrderOut(BaseModel):
     discount: float = 0.0
     total: float
     totalQuantity: int
-    deliveryOption: str
+    deliveryMethodId: str
+    deliveryMethodName: str
     payment: PaymentInfo
     status: str
     couponCode: Optional[str] = None

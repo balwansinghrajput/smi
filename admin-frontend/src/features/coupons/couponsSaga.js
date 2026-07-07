@@ -6,6 +6,7 @@ import {
   updateCouponRequest, updateCouponSuccess, updateCouponFailure,
   toggleCouponRequest, toggleCouponSuccess, toggleCouponFailure,
   deleteCouponRequest, deleteCouponSuccess, deleteCouponFailure,
+  fetchCouponAnalyticsRequest, fetchCouponAnalyticsSuccess, fetchCouponAnalyticsFailure,
 } from './couponsSlice';
 
 function* handleFetchCoupons() {
@@ -54,10 +55,20 @@ function* handleDeleteCoupon(action) {
   }
 }
 
+function* handleFetchCouponAnalytics(action) {
+  try {
+    const response = yield call(client.get, `/coupons/${action.payload}/analytics`);
+    yield put(fetchCouponAnalyticsSuccess(response.data.data));
+  } catch (error) {
+    yield put(fetchCouponAnalyticsFailure(error.response?.data?.message || 'Unable to load analytics'));
+  }
+}
+
 export function* couponsSaga() {
   yield takeEvery(fetchCouponsRequest.type, handleFetchCoupons);
   yield takeEvery(createCouponRequest.type, handleCreateCoupon);
   yield takeEvery(updateCouponRequest.type, handleUpdateCoupon);
   yield takeEvery(toggleCouponRequest.type, handleToggleCoupon);
   yield takeEvery(deleteCouponRequest.type, handleDeleteCoupon);
+  yield takeEvery(fetchCouponAnalyticsRequest.type, handleFetchCouponAnalytics);
 }

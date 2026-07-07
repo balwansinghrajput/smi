@@ -55,6 +55,7 @@ class ProductService:
             specifications=specifications,
             keywords=tags,
             createdAt=str(doc.get("createdAt") or doc.get("created_at") or ""),
+            hasShipping=doc.get("has_shipping", True),
         )
 
     def page_response(self, docs: list[dict], total: int, page: int) -> ProductPage:

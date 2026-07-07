@@ -64,6 +64,22 @@ async def get_coupon(coupon_id: str, db: AsyncIOMotorDatabase = Depends(get_data
         return _err(str(exc), 500)
 
 
+# ── Analytics ─────────────────────────────────────────────────────────────────
+
+@router.get("/{coupon_id}/analytics", response_model=BaseResponse, dependencies=[Depends(require_roles("super_admin", "admin"))])
+async def get_coupon_analytics(coupon_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    try:
+        service = CouponService(db)
+        analytics = await service.get_coupon_analytics(coupon_id)
+        return BaseResponse(status="success", message="Coupon analytics retrieved.", data=analytics)
+    except ValueError as exc:
+        return _err(str(exc), 400)
+    except LookupError as exc:
+        return _err(str(exc), 404)
+    except Exception as exc:
+        return _err(str(exc), 500)
+
+
 # ── Update ────────────────────────────────────────────────────────────────────
 
 @router.put("/{coupon_id}", response_model=BaseResponse, dependencies=[Depends(require_roles("super_admin", "admin"))])

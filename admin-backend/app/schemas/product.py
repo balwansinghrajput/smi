@@ -19,6 +19,7 @@ class ProductCreateRequest(BaseModel):
     stock: int = Field(..., ge=0)
     status: ProductStatus
     tags: Optional[List[str]] = Field(default_factory=list)
+    has_shipping: bool = True
 
 
 class ProductUpdateRequest(BaseModel):
@@ -30,6 +31,7 @@ class ProductUpdateRequest(BaseModel):
     stock: Optional[int] = Field(None, ge=0)
     status: Optional[ProductStatus] = None
     tags: Optional[List[str]] = None
+    has_shipping: Optional[bool] = None
 
 
 class ProductResponse(BaseModel):
@@ -44,6 +46,7 @@ class ProductResponse(BaseModel):
     stock: int
     status: ProductStatus
     tags: List[str]
+    has_shipping: bool
 
     class Config:
         validate_by_name = True

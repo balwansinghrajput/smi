@@ -11,6 +11,7 @@ import { couponsSaga } from '../features/coupons/couponsSaga';
 import { settingsSaga } from '../features/settings/settingsSaga';
 import { dashboardSaga } from '../features/dashboard/dashboardSaga';
 import { revenueSaga } from '../features/revenue/revenueSaga';
+import { shippingSaga } from '../features/shipping/shippingSaga';
 
 export function* rootSaga() {
   yield all([
@@ -26,6 +27,7 @@ export function* rootSaga() {
     fork(settingsSaga),
     fork(dashboardSaga),
     fork(revenueSaga),
+    fork(shippingSaga),
   ]);
 }
 

@@ -10,6 +10,7 @@ from app.services.payment_service import PaymentService
 from app.services.email_service import EmailService
 from app.utils.errors import BadRequestError, NotFoundError
 from app.utils.object_id import stringify_id, validate_object_id
+from bson import ObjectId
 
 
 class OrderService:
@@ -55,7 +56,7 @@ class OrderService:
         max_uses_per_user = coupon.get("max_uses_per_user")
         if max_uses_per_user is not None:
             user_uses = await self.collection.count_documents(
-                {"userId": user_id, "couponCode": code}
+                {"userId": user_id, "couponCode": code, "status": {"$ne": "cancelled"}}
             )
             if user_uses >= max_uses_per_user:
                 raise BadRequestError("You have already used this coupon the maximum number of times")
@@ -80,11 +81,22 @@ class OrderService:
         payload: CheckoutRequest,
         background_tasks: BackgroundTasks = None,
     ) -> OrderOut:
-        cart = await self.cart.get_cart(user_id, payload.deliveryOption)
+        cart = await self.cart.get_cart(user_id, payload.deliveryMethodId)
         if not cart.items:
             raise BadRequestError("Cart is empty")
         if not cart.stockValid:
             raise BadRequestError("; ".join(cart.stockErrors))
+
+        # ── Delivery Method Validation ─────────────────────────────────────────
+        try:
+            method_oid = ObjectId(payload.deliveryMethodId)
+        except Exception:
+            raise BadRequestError("Invalid delivery method ID")
+            
+        method = await self.db["delivery_methods"].find_one({"_id": method_oid})
+        if not method or not method.get("is_active", True):
+            raise BadRequestError("Invalid or inactive delivery method selected")
+        delivery_method_name = method.get("name", "Delivery")
 
         # ── Coupon discount ────────────────────────────────────────────────────
         discount = 0.0
@@ -111,7 +123,8 @@ class OrderService:
             "discount": discount,
             "total": total,
             "totalQuantity": cart.totalQuantity,
-            "deliveryOption": payload.deliveryOption,
+            "deliveryMethodId": payload.deliveryMethodId,
+            "deliveryMethodName": delivery_method_name,
             "payment": {"method": payload.paymentMethod, "status": "initializing"},
             "status": "pending",
             "couponCode": coupon_code,
@@ -162,7 +175,8 @@ class OrderService:
             discount=doc.get("discount", 0.0),
             total=doc["total"],
             totalQuantity=doc["totalQuantity"],
-            deliveryOption=doc["deliveryOption"],
+            deliveryMethodId=doc.get("deliveryMethodId", ""),
+            deliveryMethodName=doc.get("deliveryMethodName", doc.get("deliveryOption", "Standard Delivery")),
             payment=doc["payment"],
             status=doc["status"],
             couponCode=doc.get("couponCode"),

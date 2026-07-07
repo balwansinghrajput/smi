@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from bson import ObjectId
 from app.config.settings import settings
 from app.schemas.cart import CartAdd, CartItemOut, CartOut, CartUpdate
 from app.services.product_service import ProductService
@@ -28,12 +29,13 @@ class CartService:
             upsert=True,
         )
 
-    async def get_cart(self, user_id: str, delivery_option: str = "standard") -> CartOut:
+    async def get_cart(self, user_id: str, delivery_method_id: str = None) -> CartOut:
         doc = await self._cart_doc(user_id)
         output: list[CartItemOut] = []
         stock_errors: list[str] = []
         subtotal = 0.0
         total_quantity = 0
+        any_item_requires_shipping = False
 
         valid_items: list[dict] = []
         for item in doc.get("items", []):
@@ -51,15 +53,20 @@ class CartService:
             line_total = product.price * quantity
             subtotal += line_total
             total_quantity += quantity
+            if getattr(product, "hasShipping", True):
+                any_item_requires_shipping = True
             output.append(CartItemOut(id=item["productId"], productId=item["productId"], quantity=quantity, product=product, lineTotal=line_total))
             valid_items.append({"productId": item["productId"], "quantity": quantity})
 
         if len(valid_items) != len(doc.get("items", [])):
             await self._save_items(user_id, valid_items)
 
-        shipping = 0 if subtotal >= settings.FREE_SHIPPING_THRESHOLD or subtotal == 0 else settings.SHIPPING_FLAT
-        if delivery_option == "express" and subtotal > 0:
-            shipping += settings.EXPRESS_DELIVERY_AMOUNT
+        shipping = 0.0
+        if any_item_requires_shipping and delivery_method_id and subtotal > 0:
+            method = await self.db["delivery_methods"].find_one({"_id": ObjectId(delivery_method_id)})
+            if method and method.get("is_active", True):
+                shipping = float(method.get("charge", 0.0))
+
         tax = round(subtotal * settings.TAX_RATE)
         return CartOut(
             items=output,

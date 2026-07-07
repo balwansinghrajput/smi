@@ -27,6 +27,9 @@ class ProductService:
         if "tags" not in document or document["tags"] is None:
             document["tags"] = []
 
+        if "has_shipping" not in document:
+            document["has_shipping"] = True
+
         return document
 
     async def create_product(self, payload: ProductCreateRequest, image: Any) -> ProductResponse:
@@ -44,6 +47,7 @@ class ProductService:
             "stock": payload.stock,
             "status": payload.status.value,
             "tags": tags,
+            "has_shipping": payload.has_shipping,
         }
 
         result = await self.db[self.COLLECTION_NAME].insert_one(document)
@@ -115,6 +119,8 @@ class ProductService:
             update_data["stock"] = payload.stock
         if payload.status is not None:
             update_data["status"] = payload.status.value
+        if payload.has_shipping is not None:
+            update_data["has_shipping"] = payload.has_shipping
         if payload.tags is not None:
             update_data["tags"] = payload.tags
 

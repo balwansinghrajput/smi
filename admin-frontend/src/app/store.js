@@ -13,6 +13,7 @@ import settingsReducer from '../features/settings/settingsSlice';
 import dashboardReducer from '../features/dashboard/dashboardSlice';
 import uiReducer from '../features/ui/uiSlice';
 import revenueReducer from '../features/revenue/revenueSlice';
+import shippingReducer from '../features/shipping/shippingSlice';
 import rootSaga from './rootSaga';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -32,6 +33,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     ui: uiReducer,
     revenue: revenueReducer,
+    shipping: shippingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(sagaMiddleware),

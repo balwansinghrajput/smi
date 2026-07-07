@@ -7,6 +7,8 @@ const initialState = {
   error: null,
   createError: null,
   selectedCoupon: null,
+  analytics: null,
+  analyticsLoading: false,
 };
 
 const couponsSlice = createSlice({
@@ -87,6 +89,19 @@ const couponsSlice = createSlice({
     clearCreateError: (state) => {
       state.createError = null;
     },
+
+    fetchCouponAnalyticsRequest: (state) => {
+      state.analyticsLoading = true;
+      state.analytics = null;
+    },
+    fetchCouponAnalyticsSuccess: (state, action) => {
+      state.analyticsLoading = false;
+      state.analytics = action.payload;
+    },
+    fetchCouponAnalyticsFailure: (state, action) => {
+      state.analyticsLoading = false;
+      state.error = action.payload;
+    },
   },
 });
 
@@ -97,6 +112,7 @@ export const {
   toggleCouponRequest, toggleCouponSuccess, toggleCouponFailure,
   deleteCouponRequest, deleteCouponSuccess, deleteCouponFailure,
   setSelectedCoupon, clearCreateError,
+  fetchCouponAnalyticsRequest, fetchCouponAnalyticsSuccess, fetchCouponAnalyticsFailure,
 } = couponsSlice.actions;
 
 export default couponsSlice.reducer;

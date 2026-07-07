@@ -29,6 +29,7 @@ function ProductDetailsPage() {
         price: product.price,
         stock: product.stock,
         status: product.status,
+        has_shipping: product.has_shipping !== false,
         tags: product.tags ? product.tags.join(', ') : '',
         product_image: null,
       });
@@ -52,6 +53,7 @@ function ProductDetailsPage() {
       ...form,
       price: Number(form.price),
       stock: Number(form.stock),
+      has_shipping: form.has_shipping,
     };
     
     // Only send the image if a new one was selected
@@ -148,6 +150,11 @@ function ProductDetailsPage() {
             <div>
               <label className="mb-2 block text-sm font-medium text-zinc-400">Tags</label>
               <input className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none" value={form.tags} onChange={(event) => setForm({ ...form, tags: event.target.value })} />
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <input type="checkbox" id="has_shipping" className="h-5 w-5 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-zinc-900" checked={form.has_shipping} onChange={(e) => setForm({ ...form, has_shipping: e.target.checked })} />
+              <label htmlFor="has_shipping" className="text-sm font-medium text-zinc-300">Shipping charges apply to this product</label>
             </div>
             
             <div className="pt-6 mt-6 border-t border-zinc-800 flex justify-end gap-4">

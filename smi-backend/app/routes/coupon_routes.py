@@ -83,7 +83,7 @@ async def validate_coupon(
     max_uses_per_user = coupon.get("max_uses_per_user")
     if max_uses_per_user is not None:
         user_usage = await db["orders"].count_documents(
-            {"userId": current_user["id"], "couponCode": code}
+            {"userId": current_user["id"], "couponCode": code, "status": {"$ne": "cancelled"}}
         )
         if user_usage >= max_uses_per_user:
             raise BadRequestError("You have already used this coupon the maximum number of times")

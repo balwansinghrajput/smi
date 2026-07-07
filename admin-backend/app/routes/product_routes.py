@@ -25,6 +25,7 @@ async def create_product(
     price: float = Form(...),
     stock: int = Form(...),
     status: str = Form(...),
+    has_shipping: bool = Form(True),
     tags: str = Form(""),
     product_image: UploadFile = File(...),
     db: AsyncIOMotorDatabase = Depends(get_database),
@@ -41,6 +42,7 @@ async def create_product(
             stock=stock,
             status=status,
             tags=[tag.strip() for tag in tags.split(",") if tag.strip()],
+            has_shipping=has_shipping,
         )
         service = ProductService(db)
         print("------------------ product service created -----------------" , service)
@@ -86,6 +88,7 @@ async def update_product(
     price: float | None = Form(None),
     stock: int | None = Form(None),
     status: str | None = Form(None),
+    has_shipping: bool | None = Form(None),
     tags: str | None = Form(None),
     product_image: UploadFile | None = File(None),
     db: AsyncIOMotorDatabase = Depends(get_database),
@@ -103,6 +106,7 @@ async def update_product(
             stock=stock,
             status=status,
             tags=[tag.strip() for tag in tags.split(",") if tag.strip()] if tags is not None else None,
+            has_shipping=has_shipping,
         )
         service = ProductService(db)
         product = await service.update_product(product_id, payload, image=product_image)

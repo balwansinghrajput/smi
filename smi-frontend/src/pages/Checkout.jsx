@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import {
@@ -9,7 +9,7 @@ import { useClearCartRemoteMutation, useGetCartQuery } from '@/features/cart/car
 import {
   selectCheckout,
   selectAppliedCoupon,
-  setDeliveryOption,
+  setDeliveryMethodId,
   setPaymentMethod,
   placeOrderFailure,
   placeOrderSuccess,
@@ -22,30 +22,13 @@ import {
 } from '@/features/checkout/checkoutSlice'
 import { useCheckoutMutation } from '@/features/checkout/checkoutApi'
 import { useValidateCouponMutation } from '@/features/checkout/couponApi'
+import { useGetShippingMethodsQuery } from '@/features/shipping/shippingApi'
 import { useVerifyPaymentMutation } from '@/features/payments/paymentApi'
 import { selectIsAuthenticated, selectCurrentUser } from '@/features/auth/authSlice'
 import { showToast } from '@/features/ui/uiSlice'
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_FLAT, TAX_RATE } from '@/constants'
 import { formatCurrency, validateEmail, validatePhone } from '@/utils'
 import { openRazorpayModal } from '@/utils/razorpay'
-
-// ─── Delivery options ──────────────────────────────────────────────────────────
-const deliveryOptions = [
-  {
-    id: 'standard',
-    name: 'Standard Delivery',
-    description: 'Delivery in 3–5 business days',
-    amount: 0,
-    icon: '📦',
-  },
-  {
-    id: 'express',
-    name: 'Express Delivery',
-    description: 'Priority delivery in 1–2 business days',
-    amount: 149,
-    icon: '⚡',
-  },
-]
 
 // ─── Payment methods ───────────────────────────────────────────────────────────
 const paymentMethods = [
@@ -262,17 +245,26 @@ export default function Checkout() {
 
   const items = useAppSelector(selectCartItemsWithDetails)
   const subtotal = useAppSelector(selectCartSubtotal)
+  const { data: deliveryMethods = [], isLoading: methodsLoading } = useGetShippingMethodsQuery()
+
   const checkout = useAppSelector(selectCheckout)
   const appliedCoupon = useAppSelector(selectAppliedCoupon)
-  const { shippingAddress, deliveryOption, paymentMethod } = checkout
+  const { shippingAddress, deliveryMethodId, paymentMethod } = checkout
 
   const [placingOrder, setPlacingOrder] = useState(false)
   const [completedOrder, setCompletedOrder] = useState(null)
 
+  // Auto-select first delivery method if none selected
+  useEffect(() => {
+    if (deliveryMethods.length > 0 && !deliveryMethodId) {
+      dispatch(setDeliveryMethodId(deliveryMethods[0]._id))
+    }
+  }, [deliveryMethods, deliveryMethodId, dispatch])
+
   // ── Totals (with coupon) ───────────────────────────────────────────────────
-  const baseShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT
-  const selectedDelivery = deliveryOptions.find((o) => o.id === deliveryOption)
-  const shipping = baseShipping + (selectedDelivery?.amount || 0)
+  const anyItemRequiresShipping = items.some(item => item.product.hasShipping !== false)
+  const selectedMethod = deliveryMethods.find((m) => m._id === deliveryMethodId)
+  const shipping = (anyItemRequiresShipping && selectedMethod && subtotal > 0) ? selectedMethod.charge : 0
 
   const discount = appliedCoupon?.discount_amount ?? 0
   const discountedSubtotal = Math.max(subtotal - discount, 0)
@@ -305,7 +297,7 @@ export default function Checkout() {
 
   const checkoutPayload = () => ({
     shippingAddress,
-    deliveryOption,
+    deliveryMethodId,
     paymentMethod,
     couponCode: appliedCoupon?.code || undefined,
   })
@@ -488,11 +480,15 @@ export default function Checkout() {
                 Delivery Options
               </h2>
               <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {deliveryOptions.map((option) => (
+                {methodsLoading ? (
+                  <div className="col-span-full py-4 text-center text-sm text-muted">Loading delivery options...</div>
+                ) : deliveryMethods.length === 0 ? (
+                  <div className="col-span-full py-4 text-center text-sm text-muted border rounded-xl border-dashed border-border">No delivery methods available.</div>
+                ) : deliveryMethods.map((option) => (
                   <label
-                    key={option.id}
+                    key={option._id}
                     className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                      deliveryOption === option.id
+                      deliveryMethodId === option._id
                         ? 'border-accent bg-accent/10 shadow-sm shadow-accent/20'
                         : 'border-border bg-primary hover:border-accent/60'
                     }`}
@@ -500,21 +496,22 @@ export default function Checkout() {
                     <input
                       type="radio"
                       name="delivery"
-                      value={option.id}
-                      checked={deliveryOption === option.id}
-                      onChange={() => dispatch(setDeliveryOption(option.id))}
+                      value={option._id}
+                      checked={deliveryMethodId === option._id}
+                      onChange={() => dispatch(setDeliveryMethodId(option._id))}
                       className="sr-only"
                     />
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl" aria-hidden="true">{option.icon}</span>
+                      <span className="text-2xl" aria-hidden="true">📦</span>
                       <div className="flex-1">
                         <span className="block font-semibold text-text">{option.name}</span>
                         <span className="mt-0.5 block text-sm text-muted">{option.description}</span>
+                        <span className="mt-0.5 block text-xs text-muted">Est. {option.estimated_days}</span>
                         <span className="mt-2 block text-sm font-semibold text-accent">
-                          {option.amount === 0 ? 'FREE' : `+${formatCurrency(option.amount)}`}
+                          {option.charge === 0 ? 'FREE' : `+${formatCurrency(option.charge)}`}
                         </span>
                       </div>
-                      {deliveryOption === option.id && (
+                      {deliveryMethodId === option._id && (
                         <svg className="h-5 w-5 shrink-0 text-accent" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
@@ -645,7 +642,7 @@ export default function Checkout() {
                 <div className="flex justify-between text-muted">
                   <span>
                     Shipping
-                    {deliveryOption === 'express' && <span className="ml-1 text-xs">(Express)</span>}
+                    {selectedMethod && <span className="ml-1 text-xs">({selectedMethod.name})</span>}
                   </span>
                   <span className="text-text">
                     {shipping === 0 ? (

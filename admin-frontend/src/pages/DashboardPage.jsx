@@ -61,6 +61,7 @@ function DashboardPage() {
             <button onClick={() => navigate('/reviews')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Reviews</button>
             <button onClick={() => navigate('/coupons')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Coupons</button>
             <button onClick={() => navigate('/settings')} className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm hover:bg-zinc-800">Settings</button>
+            <button onClick={() => navigate('/shipping')} className="rounded-lg border border-indigo-500/50 bg-indigo-500/10 text-indigo-400 px-4 py-2 text-sm font-medium hover:bg-indigo-500/20 transition-colors">Shipping</button>
           </div>
         </div>
       </div>
