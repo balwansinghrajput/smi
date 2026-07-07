@@ -5,6 +5,7 @@ const initialState = {
   pagination: null,
   loading: false,
   error: null,
+  createError: null,
   selectedCoupon: null,
 };
 
@@ -25,31 +26,49 @@ const couponsSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
     createCouponRequest: (state) => {
       state.loading = true;
+      state.createError = null;
     },
     createCouponSuccess: (state, action) => {
       state.loading = false;
       state.items = [action.payload, ...state.items];
+      state.createError = null;
     },
     createCouponFailure: (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      state.createError = action.payload;
     },
+
     updateCouponRequest: (state) => {
       state.loading = true;
+      state.createError = null;
     },
     updateCouponSuccess: (state, action) => {
       state.loading = false;
       const index = state.items.findIndex((item) => item.id === action.payload.id);
-      if (index !== -1) {
-        state.items[index] = action.payload;
-      }
+      if (index !== -1) state.items[index] = action.payload;
+      state.createError = null;
     },
     updateCouponFailure: (state, action) => {
       state.loading = false;
+      state.createError = action.payload;
+    },
+
+    toggleCouponRequest: (state) => {
+      state.loading = true;
+    },
+    toggleCouponSuccess: (state, action) => {
+      state.loading = false;
+      const index = state.items.findIndex((item) => item.id === action.payload.id);
+      if (index !== -1) state.items[index] = action.payload;
+    },
+    toggleCouponFailure: (state, action) => {
+      state.loading = false;
       state.error = action.payload;
     },
+
     deleteCouponRequest: (state) => {
       state.loading = true;
     },
@@ -61,26 +80,23 @@ const couponsSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
     setSelectedCoupon: (state, action) => {
       state.selectedCoupon = action.payload;
+    },
+    clearCreateError: (state) => {
+      state.createError = null;
     },
   },
 });
 
 export const {
-  fetchCouponsRequest,
-  fetchCouponsSuccess,
-  fetchCouponsFailure,
-  createCouponRequest,
-  createCouponSuccess,
-  createCouponFailure,
-  updateCouponRequest,
-  updateCouponSuccess,
-  updateCouponFailure,
-  deleteCouponRequest,
-  deleteCouponSuccess,
-  deleteCouponFailure,
-  setSelectedCoupon,
+  fetchCouponsRequest, fetchCouponsSuccess, fetchCouponsFailure,
+  createCouponRequest, createCouponSuccess, createCouponFailure,
+  updateCouponRequest, updateCouponSuccess, updateCouponFailure,
+  toggleCouponRequest, toggleCouponSuccess, toggleCouponFailure,
+  deleteCouponRequest, deleteCouponSuccess, deleteCouponFailure,
+  setSelectedCoupon, clearCreateError,
 } = couponsSlice.actions;
 
 export default couponsSlice.reducer;

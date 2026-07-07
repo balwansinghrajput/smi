@@ -1,15 +1,16 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
 import client from '../../api/client';
-import { 
+import {
   fetchCouponsRequest, fetchCouponsSuccess, fetchCouponsFailure,
   createCouponRequest, createCouponSuccess, createCouponFailure,
   updateCouponRequest, updateCouponSuccess, updateCouponFailure,
-  deleteCouponRequest, deleteCouponSuccess, deleteCouponFailure
+  toggleCouponRequest, toggleCouponSuccess, toggleCouponFailure,
+  deleteCouponRequest, deleteCouponSuccess, deleteCouponFailure,
 } from './couponsSlice';
 
 function* handleFetchCoupons() {
   try {
-    const response = yield call(client.get, '/coupons');
+    const response = yield call(client.get, '/coupons/');
     yield put(fetchCouponsSuccess(response.data.data));
   } catch (error) {
     yield put(fetchCouponsFailure(error.response?.data?.message || 'Unable to load coupons'));
@@ -18,7 +19,7 @@ function* handleFetchCoupons() {
 
 function* handleCreateCoupon(action) {
   try {
-    const response = yield call(client.post, '/coupons', action.payload);
+    const response = yield call(client.post, '/coupons/', action.payload);
     yield put(createCouponSuccess(response.data.data));
   } catch (error) {
     yield put(createCouponFailure(error.response?.data?.message || 'Unable to create coupon'));
@@ -35,6 +36,15 @@ function* handleUpdateCoupon(action) {
   }
 }
 
+function* handleToggleCoupon(action) {
+  try {
+    const response = yield call(client.patch, `/coupons/${action.payload}/toggle`);
+    yield put(toggleCouponSuccess(response.data.data));
+  } catch (error) {
+    yield put(toggleCouponFailure(error.response?.data?.message || 'Unable to toggle coupon'));
+  }
+}
+
 function* handleDeleteCoupon(action) {
   try {
     yield call(client.delete, `/coupons/${action.payload}`);
@@ -48,5 +58,6 @@ export function* couponsSaga() {
   yield takeEvery(fetchCouponsRequest.type, handleFetchCoupons);
   yield takeEvery(createCouponRequest.type, handleCreateCoupon);
   yield takeEvery(updateCouponRequest.type, handleUpdateCoupon);
+  yield takeEvery(toggleCouponRequest.type, handleToggleCoupon);
   yield takeEvery(deleteCouponRequest.type, handleDeleteCoupon);
 }

@@ -8,13 +8,20 @@ import {
 import { useClearCartRemoteMutation, useGetCartQuery } from '@/features/cart/cartApi'
 import {
   selectCheckout,
+  selectAppliedCoupon,
   setDeliveryOption,
   setPaymentMethod,
   placeOrderFailure,
   placeOrderSuccess,
   updateShippingAddress,
+  setCouponCode,
+  applyCouponStart,
+  applyCouponSuccess,
+  applyCouponFailure,
+  removeCoupon,
 } from '@/features/checkout/checkoutSlice'
 import { useCheckoutMutation } from '@/features/checkout/checkoutApi'
+import { useValidateCouponMutation } from '@/features/checkout/couponApi'
 import { useVerifyPaymentMutation } from '@/features/payments/paymentApi'
 import { selectIsAuthenticated, selectCurrentUser } from '@/features/auth/authSlice'
 import { showToast } from '@/features/ui/uiSlice'
@@ -58,15 +65,135 @@ const paymentMethods = [
   },
 ]
 
-// ─── Razorpay logo SVG ─────────────────────────────────────────────────────────
+// ─── Razorpay badge ────────────────────────────────────────────────────────────
 function RazorpayBadge() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
       <svg viewBox="0 0 24 24" className="h-3 w-3 fill-blue-400" aria-hidden="true">
-        <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zm-5.69 14.71l-3.26-5.2-1.8 5.2H8l2.73-8.22h1.76l3.27 5.2 1.8-5.2h1.76L16.57 16.7h-1.76z"/>
+        <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zm-5.69 14.71l-3.26-5.2-1.8 5.2H8l2.73-8.22h1.76l3.27 5.2 1.8-5.2h1.76L16.57 16.7h-1.76z" />
       </svg>
       Razorpay Secured
     </span>
+  )
+}
+
+// ─── Coupon Input Section ──────────────────────────────────────────────────────
+function CouponSection({ subtotal }) {
+  const dispatch = useAppDispatch()
+  const { couponCode, couponLoading, couponError } = useAppSelector(selectCheckout)
+  const appliedCoupon = useAppSelector(selectAppliedCoupon)
+  const [validateCoupon] = useValidateCouponMutation()
+
+  const handleApply = async () => {
+    const trimmed = couponCode.trim()
+    if (!trimmed) return
+    dispatch(applyCouponStart())
+    try {
+      const result = await validateCoupon({ code: trimmed, subtotal }).unwrap()
+      dispatch(applyCouponSuccess(result))
+      dispatch(showToast({ type: 'success', message: result.message }))
+    } catch (err) {
+      const msg = err?.data?.message || 'Invalid coupon code'
+      dispatch(applyCouponFailure(msg))
+    }
+  }
+
+  const handleRemove = () => {
+    dispatch(removeCoupon())
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleApply()
+    }
+  }
+
+  return (
+    <section className="card" aria-labelledby="coupon-heading">
+      <h2 id="coupon-heading" className="text-xl font-semibold text-text">
+        Coupon Code
+      </h2>
+
+      {appliedCoupon ? (
+        /* ── Applied state ─────────────────────────────────────────────── */
+        <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-success/30 bg-success/5 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/20">
+              <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-mono text-sm font-bold tracking-widest text-success">
+                {appliedCoupon.code}
+              </p>
+              <p className="mt-0.5 text-sm text-muted">
+                {appliedCoupon.discount_type === 'percentage'
+                  ? `${appliedCoupon.discount_value}% off${appliedCoupon.max_discount ? ` (max ${formatCurrency(appliedCoupon.max_discount)})` : ''}`
+                  : `${formatCurrency(appliedCoupon.discount_value)} off`}
+                {' · '}
+                <span className="font-semibold text-success">
+                  You save {formatCurrency(appliedCoupon.discount_amount)}
+                </span>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-error/10 hover:text-error"
+            aria-label="Remove coupon"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        /* ── Input state ───────────────────────────────────────────────── */
+        <div className="mt-4">
+          <div className="flex gap-2">
+            <input
+              id="coupon-input"
+              type="text"
+              value={couponCode}
+              onChange={(e) => dispatch(setCouponCode(e.target.value.toUpperCase()))}
+              onKeyDown={handleKeyDown}
+              placeholder="ENTER CODE"
+              className="input-field flex-1 font-mono uppercase tracking-widest"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="Coupon code"
+              aria-describedby={couponError ? 'coupon-error' : undefined}
+            />
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={!couponCode.trim() || couponLoading}
+              className="shrink-0 rounded-lg border border-accent bg-accent/10 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {couponLoading ? (
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                'Apply'
+              )}
+            </button>
+          </div>
+          {couponError && (
+            <p id="coupon-error" role="alert" className="mt-2 flex items-center gap-1.5 text-sm text-error">
+              <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {couponError}
+            </p>
+          )}
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -101,19 +228,16 @@ function OrderSuccess({ order, navigate }) {
             Order ID: <span className="text-accent">{order.id}</span>
           </p>
         )}
+        {order?.discount > 0 && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
+            🎉 You saved {formatCurrency(order.discount)} with coupon{order.couponCode ? ` ${order.couponCode}` : ''}!
+          </p>
+        )}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={() => navigate('/orders')}
-            className="btn-primary"
-          >
+          <button type="button" onClick={() => navigate('/orders')} className="btn-primary">
             View My Orders
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('/products')}
-            className="btn-secondary"
-          >
+          <button type="button" onClick={() => navigate('/products')} className="btn-secondary">
             Continue Shopping
           </button>
         </div>
@@ -139,17 +263,21 @@ export default function Checkout() {
   const items = useAppSelector(selectCartItemsWithDetails)
   const subtotal = useAppSelector(selectCartSubtotal)
   const checkout = useAppSelector(selectCheckout)
+  const appliedCoupon = useAppSelector(selectAppliedCoupon)
   const { shippingAddress, deliveryOption, paymentMethod } = checkout
 
   const [placingOrder, setPlacingOrder] = useState(false)
   const [completedOrder, setCompletedOrder] = useState(null)
 
-  // ── Totals ─────────────────────────────────────────────────────────────────
+  // ── Totals (with coupon) ───────────────────────────────────────────────────
   const baseShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT
   const selectedDelivery = deliveryOptions.find((o) => o.id === deliveryOption)
   const shipping = baseShipping + (selectedDelivery?.amount || 0)
-  const tax = Math.round(subtotal * TAX_RATE)
-  const total = subtotal + shipping + tax
+
+  const discount = appliedCoupon?.discount_amount ?? 0
+  const discountedSubtotal = Math.max(subtotal - discount, 0)
+  const tax = Math.round(discountedSubtotal * TAX_RATE)
+  const total = discountedSubtotal + shipping + tax
 
   const isProcessing = placingOrder || checkoutLoading || verifyLoading
 
@@ -175,15 +303,17 @@ export default function Checkout() {
     return true
   }
 
+  const checkoutPayload = () => ({
+    shippingAddress,
+    deliveryOption,
+    paymentMethod,
+    couponCode: appliedCoupon?.code || undefined,
+  })
+
   // ── COD Flow ───────────────────────────────────────────────────────────────
   const handleCODCheckout = async () => {
     try {
-      const order = await checkoutOrder({
-        shippingAddress,
-        deliveryOption,
-        paymentMethod: 'cod',
-      }).unwrap()
-
+      const order = await checkoutOrder({ ...checkoutPayload(), paymentMethod: 'cod' }).unwrap()
       dispatch(placeOrderSuccess())
       dispatch(showToast({ type: 'success', message: 'Order placed! Pay on delivery.' }))
       setCompletedOrder(order)
@@ -195,14 +325,9 @@ export default function Checkout() {
 
   // ── Online (Razorpay) Flow ─────────────────────────────────────────────────
   const handleOnlineCheckout = async () => {
-    // Step 1: Create order on backend → get Razorpay order ID
     let order
     try {
-      order = await checkoutOrder({
-        shippingAddress,
-        deliveryOption,
-        paymentMethod: 'online',
-      }).unwrap()
+      order = await checkoutOrder({ ...checkoutPayload(), paymentMethod: 'online' }).unwrap()
     } catch (err) {
       dispatch(showToast({ type: 'error', message: err.data?.message || 'Unable to initiate payment' }))
       return
@@ -214,7 +339,6 @@ export default function Checkout() {
       return
     }
 
-    // Step 2: Open Razorpay modal
     openRazorpayModal({
       razorpayOrderId,
       amount: order.total,
@@ -226,7 +350,6 @@ export default function Checkout() {
       },
       description: 'SMI Battery Purchase',
 
-      // Step 3: On payment success → verify signature on backend
       onSuccess: async (response) => {
         try {
           await verifyPayment({
@@ -234,17 +357,11 @@ export default function Checkout() {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
           }).unwrap()
-
           dispatch(placeOrderSuccess())
           dispatch(showToast({ type: 'success', message: 'Payment successful! Order confirmed.' }))
           setCompletedOrder({ ...order, payment: { ...order.payment, status: 'paid' } })
         } catch (err) {
-          dispatch(
-            showToast({
-              type: 'error',
-              message: err.data?.message || 'Payment verification failed. Contact support.',
-            })
-          )
+          dispatch(showToast({ type: 'error', message: err.data?.message || 'Payment verification failed. Contact support.' }))
         } finally {
           setPlacingOrder(false)
         }
@@ -283,7 +400,6 @@ export default function Checkout() {
         await handleCODCheckout()
       } else {
         await handleOnlineCheckout()
-        // placingOrder will be reset inside modal callbacks
         return
       }
     } finally {
@@ -438,9 +554,7 @@ export default function Checkout() {
                         <span className="block font-semibold text-text">{method.name}</span>
                         <span className="mt-0.5 block text-sm text-muted">{method.description}</span>
                         {method.badge && (
-                          <div className="mt-2">
-                            <RazorpayBadge />
-                          </div>
+                          <div className="mt-2"><RazorpayBadge /></div>
                         )}
                       </div>
                       {paymentMethod === method.id && (
@@ -453,7 +567,6 @@ export default function Checkout() {
                 ))}
               </div>
 
-              {/* Online payment info banner */}
               {paymentMethod === 'online' && (
                 <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
                   <div className="flex items-start gap-3">
@@ -502,6 +615,9 @@ export default function Checkout() {
               </div>
             </section>
 
+            {/* ── Coupon Section ── */}
+            <CouponSection subtotal={subtotal} />
+
             {/* Price Breakdown */}
             <section className="card space-y-4" aria-labelledby="price-heading">
               <h2 id="price-heading" className="text-xl font-semibold text-text">
@@ -512,12 +628,24 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span className="text-text">{formatCurrency(subtotal)}</span>
                 </div>
+
+                {/* Coupon discount line — shown when a coupon is applied */}
+                {discount > 0 && (
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="flex items-center gap-1.5 text-success">
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      Coupon ({appliedCoupon?.code})
+                    </span>
+                    <span className="text-success">−{formatCurrency(discount)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-muted">
                   <span>
                     Shipping
-                    {deliveryOption === 'express' && (
-                      <span className="ml-1 text-xs">(Express)</span>
-                    )}
+                    {deliveryOption === 'express' && <span className="ml-1 text-xs">(Express)</span>}
                   </span>
                   <span className="text-text">
                     {shipping === 0 ? (
@@ -527,14 +655,30 @@ export default function Checkout() {
                     )}
                   </span>
                 </div>
+
                 <div className="flex justify-between text-muted">
                   <span>Tax (GST {TAX_RATE * 100}%)</span>
                   <span className="text-text">{formatCurrency(tax)}</span>
                 </div>
+
+                {/* Savings summary */}
+                {discount > 0 && (
+                  <div className="rounded-lg bg-success/5 px-3 py-2 text-xs text-success">
+                    🎉 You're saving {formatCurrency(discount)} on this order!
+                  </div>
+                )}
+
                 <div className="border-t border-border pt-3">
                   <div className="flex justify-between text-base font-bold text-text">
                     <span>Total</span>
-                    <span className="text-accent">{formatCurrency(total)}</span>
+                    <div className="text-right">
+                      {discount > 0 && (
+                        <p className="text-xs font-normal text-muted line-through">
+                          {formatCurrency(subtotal + shipping + Math.round(subtotal * TAX_RATE))}
+                        </p>
+                      )}
+                      <span className="text-accent">{formatCurrency(total)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -564,7 +708,6 @@ export default function Checkout() {
                 Back to Cart
               </Link>
 
-              {/* Security assurance */}
               <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />

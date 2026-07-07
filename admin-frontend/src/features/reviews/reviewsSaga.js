@@ -8,7 +8,7 @@ import {
 
 function* handleFetchReviews() {
   try {
-    const response = yield call(client.get, '/reviews');
+    const response = yield call(client.get, '/reviews/');
     yield put(fetchReviewsSuccess(response.data.data));
   } catch (error) {
     yield put(fetchReviewsFailure(error.response?.data?.message || 'Unable to load reviews'));

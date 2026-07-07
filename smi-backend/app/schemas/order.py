@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -24,6 +24,7 @@ class CheckoutRequest(BaseModel):
     shippingAddress: ShippingAddress
     deliveryOption: DeliveryOption = "standard"
     paymentMethod: PaymentMethod = "cod"
+    couponCode: Optional[str] = None  # User-applied coupon code
 
 
 class PaymentInfo(BaseModel):
@@ -43,15 +44,16 @@ class OrderOut(BaseModel):
     subtotal: float
     shipping: float
     tax: float
+    discount: float = 0.0
     total: float
     totalQuantity: int
     deliveryOption: str
     payment: PaymentInfo
     status: str
+    couponCode: Optional[str] = None
     createdAt: datetime
     updatedAt: datetime | None = None
 
 
 class OrderStatusUpdate(BaseModel):
     status: Literal["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]
-

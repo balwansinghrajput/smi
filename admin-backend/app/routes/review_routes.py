@@ -29,7 +29,7 @@ async def get_review(review_id: str, db: AsyncIOMotorDatabase = Depends(get_data
     try:
         service = ReviewService(db)
         review = await service.get_review(review_id)
-        return BaseResponse(status="success", message="Review retrieved.", data=review.dict(by_alias=True))
+        return BaseResponse(status="success", message="Review retrieved.", data=review.dict())
     except ValueError as exc:
         return _format_error(str(exc), 400)
     except LookupError as exc:
@@ -48,7 +48,7 @@ async def update_review_status(
     try:
         service = ReviewService(db)
         review = await service.update_review_status(review_id, payload)
-        return BaseResponse(status="success", message="Review status updated.", data=review.dict(by_alias=True))
+        return BaseResponse(status="success", message="Review status updated.", data=review.dict())
     except ValueError as exc:
         return _format_error(str(exc), 400)
     except LookupError as exc:
